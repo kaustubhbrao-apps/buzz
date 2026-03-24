@@ -26,7 +26,17 @@ export default function SignupPage() {
     try {
       // Get the current session token from the browser client
       const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
+      let session = null;
+
+      // Retry a few times — session may not be ready immediately after OAuth redirect
+      for (let i = 0; i < 5; i++) {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          session = data.session;
+          break;
+        }
+        await new Promise(r => setTimeout(r, 500));
+      }
 
       if (!session) {
         throw new Error('Not signed in. Please sign in with Google first.');
