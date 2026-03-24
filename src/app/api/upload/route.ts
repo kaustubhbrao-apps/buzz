@@ -1,12 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { v2 as cloudinary } from 'cloudinary';
-
-cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const MAX_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -22,6 +16,10 @@ function getType(mime: string): 'image' | 'video' | 'file' {
   if (mime.startsWith('image/')) return 'image';
   if (mime.startsWith('video/')) return 'video';
   return 'file';
+}
+
+function sanitizeFilename(name: string): string {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
 export async function POST(request: Request) {
@@ -44,23 +42,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'File type not supported.' }, { status: 400 });
   }
 
+  const adminClient = createAdminClient();
+  const sanitizedName = sanitizeFilename(file.name);
+  const filePath = `${user.id}/${Date.now()}-${sanitizedName}`;
+
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
 
-  const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
-    cloudinary.uploader
-      .upload_stream(
-        { folder: `buzz/${user.id}`, resource_type: 'auto' },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result as { secure_url: string });
-        }
-      )
-      .end(buffer);
-  });
+  const { error } = await adminClient.storage
+    .from('uploads')
+    .upload(filePath, buffer, {
+      contentType: file.type,
+      upsert: false,
+    });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  const { data: publicUrlData } = adminClient.storage
+    .from('uploads')
+    .getPublicUrl(filePath);
 
   return NextResponse.json({
-    url: result.secure_url,
+    url: publicUrlData.publicUrl,
     type: getType(file.type),
   });
 }

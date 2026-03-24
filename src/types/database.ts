@@ -250,27 +250,40 @@ export interface Notification extends NotificationRow {
 
 // ---- Database type for Supabase client ----
 
-export type Database = {
+// Helper type for Supabase table definitions
+type TableDef<R, I = R, U = Partial<R>> = {
+  Row: R;
+  Insert: I;
+  Update: U;
+  Relationships: { foreignKeyName: string; columns: string[]; isOneToOne: boolean; referencedRelation: string; referencedColumns: string[] }[];
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Database = any & {
   public: {
     Tables: {
-      users: { Row: User; Insert: Omit<User, 'created_at'>; Update: Partial<Omit<User, 'id'>> };
-      person_profiles: { Row: PersonProfile; Insert: Omit<PersonProfile, 'id' | 'created_at' | 'updated_at' | 'buzz_score' | 'score_band' | 'streak_count' | 'profile_complete'>; Update: Partial<Omit<PersonProfile, 'id' | 'user_id'>> };
-      company_profiles: { Row: CompanyProfile; Insert: Omit<CompanyProfile, 'id' | 'created_at' | 'updated_at' | 'verified' | 'credibility_score' | 'response_rate' | 'total_hires'>; Update: Partial<Omit<CompanyProfile, 'id' | 'user_id'>> };
-      skills: { Row: Skill; Insert: Omit<Skill, 'id'>; Update: Partial<Omit<Skill, 'id'>> };
-      person_skills: { Row: { person_id: string; skill_id: string }; Insert: { person_id: string; skill_id: string }; Update: never };
-      posts: { Row: PostRow; Insert: Omit<PostRow, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<PostRow, 'id' | 'author_id'>> };
-      reactions: { Row: ReactionRow; Insert: Omit<ReactionRow, 'created_at'>; Update: Partial<ReactionRow> };
-      saved_posts: { Row: { post_id: string; user_id: string; created_at: string }; Insert: { post_id: string; user_id: string }; Update: never };
-      comments: { Row: CommentRow; Insert: Omit<CommentRow, 'id' | 'created_at'>; Update: never };
-      follows: { Row: FollowRow; Insert: Omit<FollowRow, 'created_at'>; Update: never };
-      connections: { Row: ConnectionRow; Insert: Omit<ConnectionRow, 'id' | 'created_at' | 'updated_at' | 'status'>; Update: Partial<ConnectionRow> };
-      message_threads: { Row: MessageThreadRow; Insert: Omit<MessageThreadRow, 'id' | 'created_at' | 'updated_at'>; Update: Partial<MessageThreadRow> };
-      messages: { Row: MessageRow; Insert: Omit<MessageRow, 'id' | 'created_at' | 'read'>; Update: Partial<MessageRow> };
-      job_posts: { Row: JobPostRow; Insert: Omit<JobPostRow, 'id' | 'created_at' | 'updated_at' | 'status'>; Update: Partial<Omit<JobPostRow, 'id' | 'company_id'>> };
-      job_applications: { Row: JobApplicationRow; Insert: Omit<JobApplicationRow, 'id' | 'applied_at' | 'responded_at' | 'status'>; Update: Partial<JobApplicationRow> };
-      endorsements: { Row: EndorsementRow; Insert: Omit<EndorsementRow, 'id' | 'created_at'>; Update: never };
-      score_events: { Row: ScoreEvent; Insert: Omit<ScoreEvent, 'id' | 'created_at'>; Update: never };
-      notifications: { Row: NotificationRow; Insert: Omit<NotificationRow, 'id' | 'created_at' | 'read'>; Update: Partial<NotificationRow> };
+      users: TableDef<User, Omit<User, 'created_at'>, Partial<Omit<User, 'id'>>>;
+      person_profiles: TableDef<PersonProfile, Omit<PersonProfile, 'id' | 'created_at' | 'updated_at' | 'buzz_score' | 'score_band' | 'streak_count' | 'profile_complete'>, Partial<Omit<PersonProfile, 'id' | 'user_id'>>>;
+      company_profiles: TableDef<CompanyProfile, Omit<CompanyProfile, 'id' | 'created_at' | 'updated_at' | 'verified' | 'credibility_score' | 'response_rate' | 'total_hires'>, Partial<Omit<CompanyProfile, 'id' | 'user_id'>>>;
+      skills: TableDef<Skill, Omit<Skill, 'id'>, Partial<Omit<Skill, 'id'>>>;
+      person_skills: TableDef<{ person_id: string; skill_id: string }, { person_id: string; skill_id: string }, { person_id?: string; skill_id?: string }>;
+      posts: TableDef<PostRow, Omit<PostRow, 'id' | 'created_at' | 'updated_at'>, Partial<Omit<PostRow, 'id' | 'author_id'>>>;
+      reactions: TableDef<ReactionRow, Omit<ReactionRow, 'created_at'>, Partial<ReactionRow>>;
+      saved_posts: TableDef<{ post_id: string; user_id: string; created_at: string }, { post_id: string; user_id: string }, { post_id?: string; user_id?: string }>;
+      comments: TableDef<CommentRow, Omit<CommentRow, 'id' | 'created_at'>, Partial<CommentRow>>;
+      follows: TableDef<FollowRow, Omit<FollowRow, 'created_at'>, Partial<FollowRow>>;
+      connections: TableDef<ConnectionRow, Omit<ConnectionRow, 'id' | 'created_at' | 'updated_at' | 'status'>, Partial<ConnectionRow>>;
+      message_threads: TableDef<MessageThreadRow, Omit<MessageThreadRow, 'id' | 'created_at' | 'updated_at'>, Partial<MessageThreadRow>>;
+      messages: TableDef<MessageRow, Omit<MessageRow, 'id' | 'created_at' | 'read'>, Partial<MessageRow>>;
+      job_posts: TableDef<JobPostRow, Omit<JobPostRow, 'id' | 'created_at' | 'updated_at' | 'status'>, Partial<Omit<JobPostRow, 'id' | 'company_id'>>>;
+      job_applications: TableDef<JobApplicationRow, Omit<JobApplicationRow, 'id' | 'applied_at' | 'responded_at' | 'status'>, Partial<JobApplicationRow>>;
+      endorsements: TableDef<EndorsementRow, Omit<EndorsementRow, 'id' | 'created_at'>, Partial<EndorsementRow>>;
+      score_events: TableDef<ScoreEvent, Omit<ScoreEvent, 'id' | 'created_at'>, Partial<ScoreEvent>>;
+      notifications: TableDef<NotificationRow, Omit<NotificationRow, 'id' | 'created_at' | 'read'>, Partial<NotificationRow>>;
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
   };
 };

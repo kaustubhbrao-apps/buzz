@@ -62,7 +62,7 @@ export default function PostCard({ post }: { post: Post }) {
               {isPerson && (author as PersonProfile)?.score_band && <ScoreBand band={(author as PersonProfile).score_band} showLabel={false} />}
               {isWork && <span className="chip bg-[#FFD60A] text-[#0F0F0F]">work</span>}
             </div>
-            <p className="text-[11px] text-[#0F0F0F]/40">{headline && `${headline} · `}{timeAgo(post.created_at)}</p>
+            <p className="text-[12px] text-[#888]">{headline && `${headline} · `}{timeAgo(post.created_at)}</p>
           </div>
           <button className="text-[#0F0F0F]/20 hover:text-[#0F0F0F]/50 transition-colors">
             <MoreHorizontal className="w-4 h-4" />
@@ -71,7 +71,7 @@ export default function PostCard({ post }: { post: Post }) {
 
         {content && (
           <div className="mb-4">
-            <p className={`text-[14px] leading-[1.75] text-[#0F0F0F]/80 whitespace-pre-wrap ${!expanded && isLong ? 'line-clamp-4' : ''}`}>{content}</p>
+            <p className={`text-[14px] leading-[1.75] text-[#1a1a1a] whitespace-pre-wrap ${!expanded && isLong ? 'line-clamp-4' : ''}`}>{content}</p>
             {isLong && !expanded && (
               <button onClick={() => setExpanded(true)} className="text-[13px] font-semibold text-[#0F0F0F] mt-1">more</button>
             )}
@@ -98,31 +98,32 @@ export default function PostCard({ post }: { post: Post }) {
         </div>
       )}
 
-      <div className="px-3 py-1 border-t border-[#F5F5F5]">
+      <div className="px-3 py-2 border-t border-[#F0F0F0]">
         <div className="flex items-center">
           {REACTIONS.map((type) => {
             const c = REACTION_CONFIG[type];
             const isOn = active === type;
             return (
               <button key={type} onClick={() => react(type)} title={c.label}
-                className={`flex items-center gap-1 px-3 py-2.5 rounded-xl text-[12px] font-medium transition-all duration-150 ${
-                  isOn ? 'text-[#0F0F0F] bg-[#FFD60A]/20' : 'text-[#0F0F0F]/30 hover:text-[#0F0F0F] hover:bg-[#F5F5F5]'
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 ${
+                  isOn ? 'text-[#0F0F0F] bg-[#FFD60A]/20' : 'text-[#666] hover:text-[#0F0F0F] hover:bg-[#F5F5F5]'
                 }`}>
-                <span>{c.emoji}</span>
-                {counts[type] > 0 && <span>{counts[type]}</span>}
+                <span className="text-base">{c.emoji}</span>
+                <span className="hidden sm:inline text-[12px]">{c.label}</span>
+                {counts[type] > 0 && <span className="text-[11px] font-semibold opacity-60">{counts[type]}</span>}
               </button>
             );
           })}
-          <div className="ml-auto flex items-center">
-            <button className="p-2.5 rounded-xl text-[#0F0F0F]/30 hover:text-[#0F0F0F] hover:bg-[#F5F5F5] transition-all">
-              <MessageCircle className="w-4 h-4" />
+          <div className="ml-auto flex items-center gap-0.5">
+            <button className="p-2.5 rounded-xl text-[#888] hover:text-[#0F0F0F] hover:bg-[#F5F5F5] transition-all">
+              <MessageCircle className="w-[18px] h-[18px]" />
             </button>
-            <button className="p-2.5 rounded-xl text-[#0F0F0F]/30 hover:text-[#0F0F0F] hover:bg-[#F5F5F5] transition-all">
-              <Repeat2 className="w-4 h-4" />
+            <button className="p-2.5 rounded-xl text-[#888] hover:text-[#0F0F0F] hover:bg-[#F5F5F5] transition-all">
+              <Repeat2 className="w-[18px] h-[18px]" />
             </button>
             <button onClick={toggleSave}
-              className="p-2.5 rounded-xl text-[#0F0F0F]/30 hover:text-[#0F0F0F] hover:bg-[#F5F5F5] transition-all">
-              <Bookmark className={`w-4 h-4 ${saved ? 'fill-[#FFD60A] text-[#FFD60A]' : ''}`} />
+              className={`p-2.5 rounded-xl transition-all ${saved ? 'text-[#FFD60A]' : 'text-[#888] hover:text-[#0F0F0F] hover:bg-[#F5F5F5]'}`}>
+              <Bookmark className={`w-[18px] h-[18px] ${saved ? 'fill-[#FFD60A]' : ''}`} />
             </button>
           </div>
         </div>

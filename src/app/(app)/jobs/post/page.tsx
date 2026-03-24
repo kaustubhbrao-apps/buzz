@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Loader2, AlertCircle } from 'lucide-react';
 import type { LocationType, ExperienceLevel } from '@/types/database';
 
 const SKILLS = ['React', 'Node.js', 'TypeScript', 'Python', 'UI Design', 'Figma', 'Next.js', 'Go', 'AWS', 'Docker', 'GraphQL', 'PostgreSQL', 'Machine Learning', 'Flutter'];
@@ -17,11 +18,106 @@ export default function PostJobPage() {
   const [proof, setProof] = useState('');
   const [desc, setDesc] = useState('');
   const [exp, setExp] = useState<ExperienceLevel | ''>('');
+  const [applyMethod, setApplyMethod] = useState<'buzz_dm' | 'external'>('buzz_dm');
+  const [externalUrl, setExternalUrl] = useState('');
+  const [deadline, setDeadline] = useState('');
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isCompany, setIsCompany] = useState<boolean | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/auth')
+      .then(r => r.json())
+      .then(data => {
+        setIsCompany(data.account_type === 'company');
+        setCheckingAuth(false);
+      })
+      .catch(() => {
+        setIsCompany(false);
+        setCheckingAuth(false);
+      });
+  }, []);
+
+  const handleSubmit = async () => {
+    setError(null);
+
+    if (!title.trim()) { setError('Title is required.'); return; }
+    if (!salMin || !salMax) { setError('Salary range is required. Transparency builds trust.'); return; }
+    if (!proof.trim()) { setError('Proof requirement is required.'); return; }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title.trim(),
+          skills_required: skills,
+          location_type: loc,
+          city: loc !== 'remote' ? city.trim() : null,
+          salary_min: parseInt(salMin),
+          salary_max: parseInt(salMax),
+          proof_requirement: proof.trim(),
+          description: desc.trim() || null,
+          experience_level: exp || null,
+          apply_method: applyMethod,
+          external_url: applyMethod === 'external' ? externalUrl.trim() : null,
+          deadline: deadline || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Failed to post job.');
+        setSubmitting(false);
+        return;
+      }
+
+      router.push('/jobs');
+    } catch {
+      setError('Something went wrong. Please try again.');
+      setSubmitting(false);
+    }
+  };
+
+  if (checkingAuth) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-[#0F0F0F]/30" />
+      </div>
+    );
+  }
+
+  if (isCompany === false) {
+    return (
+      <div className="max-w-xl">
+        <div className="card-static p-8 text-center">
+          <AlertCircle className="w-10 h-10 text-[#0F0F0F]/20 mx-auto mb-3" />
+          <h1 className="text-xl font-bold text-[#0F0F0F] mb-1">Company accounts only</h1>
+          <p className="text-[13px] text-[#0F0F0F]/50 mb-4">
+            Only company accounts can post jobs. Switch to a company account or contact support.
+          </p>
+          <button onClick={() => router.push('/jobs')} className="btn-secondary text-[12px] py-2">
+            Browse jobs instead
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-xl">
       <h1 className="text-xl font-bold text-[#0F0F0F] mb-1">Post a job</h1>
       <p className="text-[13px] text-[#0F0F0F]/50 mb-6">Tell candidates exactly what work to show.</p>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-5 flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+          <p className="text-[13px] text-red-700">{error}</p>
+        </div>
+      )}
 
       <div className="space-y-5">
         <div className="card-static p-5 space-y-4">
@@ -92,7 +188,42 @@ export default function PostJobPage() {
           </div>
         </div>
 
-        <button onClick={() => router.push('/jobs')} className="btn-primary w-full py-3">Post job</button>
+        <div className="card-static p-5 space-y-4">
+          <div>
+            <label className="label mb-2 block">Application method</label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setApplyMethod('buzz_dm')}
+                className={`flex-1 py-2.5 rounded-xl text-[12px] font-semibold transition-all ${applyMethod === 'buzz_dm' ? 'bg-[#0F0F0F] text-white' : 'bg-[#F5F5F5] text-[#0F0F0F]/50 hover:bg-[#EBEBEB]'}`}
+              >
+                Buzz DM
+              </button>
+              <button
+                onClick={() => setApplyMethod('external')}
+                className={`flex-1 py-2.5 rounded-xl text-[12px] font-semibold transition-all ${applyMethod === 'external' ? 'bg-[#0F0F0F] text-white' : 'bg-[#F5F5F5] text-[#0F0F0F]/50 hover:bg-[#EBEBEB]'}`}
+              >
+                External Link
+              </button>
+            </div>
+            {applyMethod === 'external' && (
+              <input value={externalUrl} onChange={e => setExternalUrl(e.target.value)} className="input mt-2" placeholder="https://careers.yourcompany.com/apply" />
+            )}
+          </div>
+
+          <div>
+            <label className="label mb-1.5 block">Application deadline (optional)</label>
+            <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className="input" />
+          </div>
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={submitting}
+          className="btn-primary w-full py-3 flex items-center justify-center gap-2"
+        >
+          {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
+          {submitting ? 'Posting...' : 'Post job'}
+        </button>
       </div>
     </div>
   );

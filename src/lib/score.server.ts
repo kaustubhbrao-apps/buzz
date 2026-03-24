@@ -1,5 +1,5 @@
 import type { ScoreEventType } from '@/types/database';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { SCORE_POINTS } from './score';
 
 export async function addScoreEvent(
@@ -7,10 +7,10 @@ export async function addScoreEvent(
   eventType: ScoreEventType,
   referenceId?: string
 ) {
-  const supabase = await createClient();
+  const admin = createAdminClient();
   const points = SCORE_POINTS[eventType];
 
-  const { data, error } = await supabase.from('score_events').insert({
+  const { data, error } = await admin.from('score_events').insert({
     person_id: personId,
     event_type: eventType,
     points,
@@ -22,9 +22,9 @@ export async function addScoreEvent(
 }
 
 export async function checkAndAwardStreak(personId: string) {
-  const supabase = await createClient();
+  const admin = createAdminClient();
 
-  const { data: profile } = await supabase
+  const { data: profile } = await admin
     .from('person_profiles')
     .select('streak_count, streak_last_post')
     .eq('id', personId)
@@ -48,7 +48,7 @@ export async function checkAndAwardStreak(personId: string) {
     }
   }
 
-  await supabase
+  await admin
     .from('person_profiles')
     .update({ streak_count: newStreak, streak_last_post: today })
     .eq('id', personId);
@@ -59,9 +59,9 @@ export async function checkAndAwardStreak(personId: string) {
 }
 
 export async function checkProfileComplete(personId: string) {
-  const supabase = await createClient();
+  const admin = createAdminClient();
 
-  const { data: profile } = await supabase
+  const { data: profile } = await admin
     .from('person_profiles')
     .select('*, person_skills(skill_id)')
     .eq('id', personId)
@@ -78,12 +78,12 @@ export async function checkProfileComplete(personId: string) {
     (profile.person_skills as unknown[])?.length > 0;
 
   if (hasRequired) {
-    await supabase
+    await admin
       .from('person_profiles')
       .update({ profile_complete: true })
       .eq('id', personId);
 
-    const { data: existing } = await supabase
+    const { data: existing } = await admin
       .from('score_events')
       .select('id')
       .eq('person_id', personId)

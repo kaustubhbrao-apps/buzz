@@ -2,14 +2,45 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Link2, Check } from 'lucide-react';
+import { Mail, Link2, Check, Loader2 } from 'lucide-react';
 
 export default function CompanyStep3() {
   const router = useRouter();
   const [method, setMethod] = useState<'domain' | 'linkedin' | null>(null);
   const [email, setEmail] = useState('');
   const [linkedin, setLinkedin] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [sent, setSent] = useState(false);
+
+  const handleFinish = async (selectedMethod: 'domain' | 'linkedin') => {
+    setSaving(true);
+    setError('');
+
+    try {
+      const updates: Record<string, string> = { verification_method: selectedMethod };
+      if (selectedMethod === 'linkedin' && linkedin) {
+        updates.linkedin_url = linkedin;
+      }
+
+      const res = await fetch('/api/profiles/company', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to save verification method');
+      }
+
+      setSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (sent) {
     return (
@@ -29,6 +60,12 @@ export default function CompanyStep3() {
       <h1 className="text-xl font-bold text-[#0F0F0F] mb-1">Make it official</h1>
       <p className="text-[13px] text-[#0F0F0F]/50 mb-6">Verified companies get more applicants. Step 3 of 3.</p>
 
+      {error && (
+        <div className="mb-4 px-4 py-2.5 rounded-2xl bg-red-50 text-red-600 text-[12px] font-semibold">
+          {error}
+        </div>
+      )}
+
       <div className="space-y-3 mb-6">
         <button onClick={() => setMethod('domain')}
           className={`card-static w-full p-5 text-left transition-all ${method === 'domain' ? 'ring-2 ring-[#FFD60A]' : ''}`}>
@@ -39,7 +76,11 @@ export default function CompanyStep3() {
           {method === 'domain' && (
             <div className="mt-3">
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input mb-3" placeholder="name@yourcompany.com" />
-              <button onClick={() => email && setSent(true)} className="btn-primary w-full text-[12px]">Send verification email</button>
+              <button onClick={() => email && handleFinish('domain')} disabled={saving}
+                className="btn-primary w-full text-[12px] disabled:opacity-50 flex items-center justify-center gap-2">
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                {saving ? 'Saving...' : 'Send verification email'}
+              </button>
             </div>
           )}
         </button>
@@ -53,7 +94,11 @@ export default function CompanyStep3() {
           {method === 'linkedin' && (
             <div className="mt-3">
               <input type="url" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className="input mb-3" placeholder="linkedin.com/company/..." />
-              <button onClick={() => linkedin && setSent(true)} className="btn-primary w-full text-[12px]">Submit for review (24hrs)</button>
+              <button onClick={() => linkedin && handleFinish('linkedin')} disabled={saving}
+                className="btn-primary w-full text-[12px] disabled:opacity-50 flex items-center justify-center gap-2">
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+                {saving ? 'Saving...' : 'Submit for review (24hrs)'}
+              </button>
             </div>
           )}
         </button>

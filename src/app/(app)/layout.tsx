@@ -1,27 +1,73 @@
 import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
 import Sidebar from '@/components/nav/Sidebar';
 import TopBar from '@/components/nav/TopBar';
 import BottomNav from '@/components/nav/BottomNav';
-import type { PersonProfile } from '@/types/database';
+import type { AccountType } from '@/types/database';
 
-const ME: PersonProfile = {
-  id: 'm1', user_id: 'mu1', handle: 'arjun-mehta', full_name: 'Arjun Mehta',
-  avatar_url: null, headline: 'Full-stack dev · Bangalore', city: 'Bangalore',
-  open_to: ['full_time', 'collab'], buzz_score: 340, score_band: 'charged',
-  streak_count: 5, streak_last_post: '2026-03-22', profile_complete: true,
-  created_at: '', updated_at: '',
-};
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient();
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { data: { user: authUser } } = await supabase.auth.getUser();
+  if (!authUser) redirect('/login');
+
+  const { data: dbUser } = await supabase
+    .from('users')
+    .select('account_type')
+    .eq('id', authUser.id)
+    .single();
+
+  const accountType: AccountType = dbUser?.account_type ?? 'person';
+
+  let profile;
+  if (accountType === 'company') {
+    const { data } = await supabase
+      .from('company_profiles')
+      .select('*')
+      .eq('user_id', authUser.id)
+      .single();
+    profile = data;
+  } else {
+    const { data } = await supabase
+      .from('person_profiles')
+      .select('*')
+      .eq('user_id', authUser.id)
+      .single();
+    profile = data;
+
+    // Backfill avatar from Google if missing
+    if (profile && !profile.avatar_url) {
+      const googleAvatar = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture;
+      if (googleAvatar) {
+        await supabase
+          .from('person_profiles')
+          .update({ avatar_url: googleAvatar })
+          .eq('id', profile.id);
+        profile.avatar_url = googleAvatar;
+      }
+    }
+  }
+
+  if (!profile) redirect('/login');
+
+  const { count: unreadCount } = await supabase
+    .from('notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('recipient_id', authUser.id)
+    .eq('read', false);
+
+  const unreadNotifications = unreadCount ?? 0;
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar profile={ME} accountType="person" unreadNotifications={3} />
+      <Sidebar profile={profile} accountType={accountType} unreadNotifications={unreadNotifications} />
       <div className="flex-1 min-w-0">
-        <TopBar profile={ME} handle={ME.handle} unreadNotifications={3} />
+        <TopBar profile={profile} handle={profile.handle} unreadNotifications={unreadNotifications} />
         <main className="w-full px-5 md:px-6 py-5 pb-20 md:pb-5">
           <Suspense>{children}</Suspense>
         </main>
-        <BottomNav unreadNotifications={3} />
+        <BottomNav unreadNotifications={unreadNotifications} />
       </div>
     </div>
   );

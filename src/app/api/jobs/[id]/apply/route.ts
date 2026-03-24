@@ -63,7 +63,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     .eq('id', params.id)
     .single();
 
-  const companyUserId = (job?.company as { user_id: string } | null)?.user_id;
+  const companyUserId = ((job?.company as unknown) as { user_id: string } | null)?.user_id;
 
   if (companyUserId) {
     const { data: thread } = await supabase

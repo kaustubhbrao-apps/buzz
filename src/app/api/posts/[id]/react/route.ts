@@ -57,8 +57,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       if (authorProfile) {
         if (reaction_type === 'hire') {
           await addScoreEvent(authorProfile.id, 'hire_reaction', postId);
-
-          // Notification
           await supabase.from('notifications').insert({
             recipient_id: post.author_id,
             type: 'hire_reaction',
@@ -68,6 +66,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         } else if (reaction_type === 'collab') {
           await addScoreEvent(authorProfile.id, 'collab_reaction', postId);
         }
+        // All reactions count — inspired and learned give points via post_saved event type
       }
     }
   }

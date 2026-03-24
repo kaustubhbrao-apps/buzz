@@ -14,6 +14,19 @@ export async function GET() {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
+
+  // Backfill avatar from Google if missing
+  if (!profile.avatar_url) {
+    const googleAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture;
+    if (googleAvatar) {
+      await supabase
+        .from('person_profiles')
+        .update({ avatar_url: googleAvatar })
+        .eq('id', profile.id);
+      profile.avatar_url = googleAvatar;
+    }
+  }
+
   return NextResponse.json({ profile });
 }
 

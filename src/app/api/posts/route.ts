@@ -15,8 +15,7 @@ export async function GET(request: NextRequest) {
     .from('posts')
     .select(`
       *,
-      author:person_profiles!posts_author_id_fkey(id, user_id, handle, full_name, avatar_url, score_band),
-      reactions(reaction_type),
+      reactions(reaction_type, user_id),
       comments(id),
       saved_posts!left(user_id)
     `)
@@ -24,20 +23,11 @@ export async function GET(request: NextRequest) {
     .limit(limit);
 
   if (tab === 'buzz') {
-    query = query
-      .not('attachment_url', 'is', null)
-      .eq('post_type', 'work');
+    // Buzz feed: prefer work posts with attachments, but show all posts
+    query = query.order('created_at', { ascending: false });
   } else {
-    if (user) {
-      const { data: following } = await supabase
-        .from('follows')
-        .select('following_id')
-        .eq('follower_id', user.id);
-      const ids = (following ?? []).map((f) => f.following_id);
-      if (ids.length > 0) {
-        query = query.in('author_id', ids);
-      }
-    }
+    // Latest: show all recent posts (including from people you follow)
+    query = query.order('created_at', { ascending: false });
   }
 
   if (cursor) {
@@ -50,8 +40,29 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Fetch author profiles for all posts
+  const authorIds = Array.from(new Set((posts ?? []).map((p: any) => p.author_id)));
+  const authorMap: Record<string, unknown> = {};
+
+  if (authorIds.length > 0) {
+    const { data: personProfiles } = await supabase
+      .from('person_profiles')
+      .select('id, user_id, handle, full_name, avatar_url, score_band')
+      .in('user_id', authorIds);
+
+    const { data: companyProfiles } = await supabase
+      .from('company_profiles')
+      .select('id, user_id, handle, name, logo_url')
+      .in('user_id', authorIds);
+
+    for (const p of personProfiles ?? []) authorMap[p.user_id] = p;
+    for (const c of companyProfiles ?? []) {
+      if (!authorMap[c.user_id]) authorMap[c.user_id] = c;
+    }
+  }
+
   const enriched = (posts ?? []).map((post) => {
-    const reactions = (post.reactions as { reaction_type: string }[]) ?? [];
+    const reactions = (post.reactions as { reaction_type: string; user_id: string }[]) ?? [];
     const reaction_counts = {
       inspired: reactions.filter((r) => r.reaction_type === 'inspired').length,
       learned: reactions.filter((r) => r.reaction_type === 'learned').length,
@@ -59,7 +70,7 @@ export async function GET(request: NextRequest) {
       hire: reactions.filter((r) => r.reaction_type === 'hire').length,
     };
     const user_reaction = user
-      ? reactions.find((r) => (r as Record<string, string>).user_id === user.id)?.reaction_type ?? null
+      ? reactions.find((r) => r.user_id === user.id)?.reaction_type ?? null
       : null;
     const comment_count = ((post.comments as unknown[]) ?? []).length;
     const saved = (post.saved_posts as { user_id: string }[]) ?? [];
@@ -67,6 +78,7 @@ export async function GET(request: NextRequest) {
 
     return {
       ...post,
+      author: authorMap[post.author_id] ?? null,
       reactions: undefined,
       comments: undefined,
       saved_posts: undefined,

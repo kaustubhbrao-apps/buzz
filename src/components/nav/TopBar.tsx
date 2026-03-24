@@ -8,13 +8,20 @@ export default function TopBar({ profile, handle, unreadNotifications = 0 }: {
   profile?: PersonProfile | CompanyProfile; handle?: string; unreadNotifications?: number;
 }) {
   const name = profile ? ('full_name' in profile ? profile.full_name : profile.name) : 'U';
+  const avatarUrl = profile
+    ? ('avatar_url' in profile ? profile.avatar_url : ('logo_url' in profile ? profile.logo_url : null))
+    : null;
 
   return (
     <header className="md:hidden sticky top-0 z-40 bg-white border-b border-[#F0F0F0]">
       <div className="flex items-center justify-between h-14 px-4">
         <Link href={handle ? `/${handle}` : '/feed'}
-          className="w-8 h-8 rounded-xl bg-[#0F0F0F] text-white flex items-center justify-center text-[10px] font-bold">
-          {name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+          className="w-8 h-8 rounded-xl bg-[#0F0F0F] text-white flex items-center justify-center text-[10px] font-bold overflow-hidden">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={name} className="w-full h-full object-cover" />
+          ) : (
+            name.split(' ').map(w => w[0]).join('').slice(0, 2)
+          )}
         </Link>
         <Link href="/" className="flex items-center gap-1">
           <div className="w-7 h-7 rounded-lg bg-[#FFD60A] flex items-center justify-center">

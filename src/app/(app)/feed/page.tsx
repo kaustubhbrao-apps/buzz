@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Image as ImageIcon, Video, Link2, PenLine, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Image as ImageIcon, Video, Link2, PenLine, Loader2, X } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import PostCard from '@/components/post/PostCard';
 import BuzzScore from '@/components/buzz/BuzzScore';
@@ -19,6 +19,14 @@ export default function FeedPage() {
   const [composing, setComposing] = useState(false);
   const [composeContent, setComposeContent] = useState('');
   const [posting, setPosting] = useState(false);
+
+  // Attachment state
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
+  const [attachmentType, setAttachmentType] = useState<'image' | 'video' | 'link' | null>(null);
+  const [linkUrl, setLinkUrl] = useState('');
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const fetchPosts = useCallback(async (cursor?: string) => {
     const params = new URLSearchParams({ tab, limit: '20' });
@@ -58,22 +66,64 @@ export default function FeedPage() {
     setLoadingMore(false);
   };
 
+  const clearAttachment = () => {
+    if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
+    setAttachmentFile(null);
+    setAttachmentPreview(null);
+    setAttachmentType(null);
+    setLinkUrl('');
+    if (imageInputRef.current) imageInputRef.current.value = '';
+    if (videoInputRef.current) videoInputRef.current.value = '';
+  };
+
+  const handleFileSelect = (file: File, type: 'image' | 'video') => {
+    if (attachmentPreview) URL.revokeObjectURL(attachmentPreview);
+    setAttachmentFile(file);
+    setAttachmentType(type);
+    setAttachmentPreview(type === 'image' ? URL.createObjectURL(file) : null);
+    setLinkUrl('');
+  };
+
   const handlePost = async () => {
     if (!composeContent.trim() || posting) return;
     setPosting(true);
     try {
+      let attachment_url: string | undefined;
+      let attachment_type: string | undefined;
+
+      // Upload file if present
+      if (attachmentFile && (attachmentType === 'image' || attachmentType === 'video')) {
+        const formData = new FormData();
+        formData.append('file', attachmentFile);
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!uploadRes.ok) {
+          setPosting(false);
+          return;
+        }
+        const uploadData = await uploadRes.json();
+        attachment_url = uploadData.url;
+        attachment_type = uploadData.type;
+      } else if (attachmentType === 'link' && linkUrl.trim()) {
+        attachment_url = linkUrl.trim();
+        attachment_type = 'link';
+      }
+
+      const post_type = (attachmentType === 'image' || attachmentType === 'video') ? 'work' : 'update';
+
       const res = await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          post_type: 'update',
+          post_type,
           content: composeContent.trim(),
           skills_tagged: [],
+          ...(attachment_url && { attachment_url, attachment_type }),
         }),
       });
       if (res.ok) {
         setComposeContent('');
         setComposing(false);
+        clearAttachment();
         // Refresh feed
         const data = await fetchPosts();
         setPosts(data.posts ?? []);
@@ -102,11 +152,61 @@ export default function FeedPage() {
                 placeholder="What did you build? What are you working on?"
                 autoFocus
               />
+
+              {/* Attachment preview */}
+              {attachmentType === 'image' && attachmentPreview && (
+                <div className="relative inline-block">
+                  <img src={attachmentPreview} alt="Preview" className="rounded-xl max-h-40 object-cover" />
+                  <button onClick={clearAttachment} className="absolute top-1.5 right-1.5 p-1 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+              {attachmentType === 'video' && attachmentFile && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-[#F5F5F5] rounded-xl text-[12px] text-[#0F0F0F]/70">
+                  <Video className="w-4 h-4 text-[#888]" />
+                  <span className="truncate flex-1">{attachmentFile.name}</span>
+                  <button onClick={clearAttachment} className="p-0.5 hover:bg-[#E0E0E0] rounded-full transition-colors">
+                    <X className="w-3.5 h-3.5 text-[#888]" />
+                  </button>
+                </div>
+              )}
+              {attachmentType === 'link' && (
+                <input
+                  type="url"
+                  value={linkUrl}
+                  onChange={e => setLinkUrl(e.target.value)}
+                  className="input text-[13px]"
+                  placeholder="Paste a URL..."
+                  autoFocus
+                />
+              )}
+
+              {/* Toolbar + actions */}
               <div className="flex justify-between items-center">
-                <button onClick={() => { setComposing(false); setComposeContent(''); }} className="btn-ghost text-[12px]">Cancel</button>
-                <button onClick={handlePost} disabled={!composeContent.trim() || posting} className="btn-primary py-2 px-4 text-[12px] disabled:opacity-50">
-                  {posting ? 'Posting...' : 'Post'}
-                </button>
+                <div className="flex items-center gap-1">
+                  <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFileSelect(f, 'image'); }} />
+                  <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFileSelect(f, 'video'); }} />
+                  <button onClick={() => imageInputRef.current?.click()} className="btn-ghost p-2 text-[#888] hover:text-[#0F0F0F]" title="Add image">
+                    <ImageIcon className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => videoInputRef.current?.click()} className="btn-ghost p-2 text-[#888] hover:text-[#0F0F0F]" title="Add video">
+                    <Video className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => { if (attachmentType === 'link') { clearAttachment(); } else { clearAttachment(); setAttachmentType('link'); } }}
+                    className={`btn-ghost p-2 transition-colors ${attachmentType === 'link' ? 'text-[#0F0F0F]' : 'text-[#888] hover:text-[#0F0F0F]'}`}
+                    title="Add link"
+                  >
+                    <Link2 className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => { setComposing(false); setComposeContent(''); clearAttachment(); }} className="btn-ghost text-[12px]">Cancel</button>
+                  <button onClick={handlePost} disabled={!composeContent.trim() || posting} className="btn-primary py-2 px-4 text-[12px] disabled:opacity-50">
+                    {posting ? 'Posting...' : 'Post'}
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
