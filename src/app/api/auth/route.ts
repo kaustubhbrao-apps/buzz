@@ -15,5 +15,5 @@ export async function GET() {
     .eq('id', user.id)
     .single();
 
-  return NextResponse.json({ user: userData });
+  return NextResponse.json({ user: { ...(userData ?? {}), email: user.email } });
 }

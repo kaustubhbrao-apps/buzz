@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { addScoreEvent, checkAndAwardStreak } from '@/lib/score';
+import { addScoreEvent, checkAndAwardStreak } from '@/lib/score.server';
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();

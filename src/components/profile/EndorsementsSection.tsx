@@ -14,7 +14,7 @@ export default function EndorsementsSection({ endorsements, isOwner }: Endorseme
         <h3 className="font-semibold mb-3">What people say</h3>
         <p className="text-sm text-buzz-muted">
           {isOwner
-            ? 'No endorsements yet. They'll come as you build your Work Wall.'
+            ? 'No endorsements yet. They\u0027ll come as you build your Work Wall.'
             : 'No endorsements yet.'}
         </p>
       </div>

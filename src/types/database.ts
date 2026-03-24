@@ -70,7 +70,9 @@ export interface Skill {
   slug: string;
 }
 
-export interface Post {
+// ---- Row types (pure DB columns, no joins) ----
+
+export interface PostRow {
   id: string;
   author_id: string;
   author_type: AccountType;
@@ -82,40 +84,31 @@ export interface Post {
   repost_of: string | null;
   created_at: string;
   updated_at: string;
-  // Joined fields
-  author?: PersonProfile | CompanyProfile;
-  reactions?: Reaction[];
-  reaction_counts?: Record<ReactionType, number>;
-  user_reaction?: ReactionType | null;
-  comment_count?: number;
-  save_count?: number;
-  is_saved?: boolean;
 }
 
-export interface Reaction {
+export interface ReactionRow {
   post_id: string;
   user_id: string;
   reaction_type: ReactionType;
   created_at: string;
 }
 
-export interface Comment {
+export interface CommentRow {
   id: string;
   post_id: string;
   author_id: string;
   content: string;
   created_at: string;
-  author?: PersonProfile;
 }
 
-export interface Follow {
+export interface FollowRow {
   follower_id: string;
   following_id: string;
   following_type: AccountType;
   created_at: string;
 }
 
-export interface Connection {
+export interface ConnectionRow {
   id: string;
   requester_id: string;
   recipient_id: string;
@@ -123,11 +116,9 @@ export interface Connection {
   note: string;
   created_at: string;
   updated_at: string;
-  requester?: PersonProfile;
-  recipient?: PersonProfile;
 }
 
-export interface MessageThread {
+export interface MessageThreadRow {
   id: string;
   participant_1: string;
   participant_2: string;
@@ -135,12 +126,9 @@ export interface MessageThread {
   job_id: string | null;
   created_at: string;
   updated_at: string;
-  other_participant?: PersonProfile | CompanyProfile;
-  last_message?: Message;
-  unread_count?: number;
 }
 
-export interface Message {
+export interface MessageRow {
   id: string;
   thread_id: string;
   sender_id: string;
@@ -149,7 +137,7 @@ export interface Message {
   created_at: string;
 }
 
-export interface JobPost {
+export interface JobPostRow {
   id: string;
   company_id: string;
   post_id: string | null;
@@ -168,12 +156,9 @@ export interface JobPost {
   status: string;
   created_at: string;
   updated_at: string;
-  company?: CompanyProfile;
-  application_count?: number;
-  user_applied?: boolean;
 }
 
-export interface JobApplication {
+export interface JobApplicationRow {
   id: string;
   job_id: string;
   applicant_id: string;
@@ -181,22 +166,18 @@ export interface JobApplication {
   status: AppStatus;
   applied_at: string;
   responded_at: string | null;
-  applicant?: PersonProfile;
-  job?: JobPost;
 }
 
-export interface Endorsement {
+export interface EndorsementRow {
   id: string;
   recipient_id: string;
   author_id: string;
   project_post_id: string | null;
   content: string;
   created_at: string;
-  author?: PersonProfile;
-  project?: Post;
 }
 
-export interface Notification {
+export interface NotificationRow {
   id: string;
   recipient_id: string;
   type: NotifType;
@@ -204,7 +185,6 @@ export interface Notification {
   actor_id: string | null;
   read: boolean;
   created_at: string;
-  actor?: PersonProfile | CompanyProfile;
 }
 
 export interface ScoreEvent {
@@ -216,6 +196,60 @@ export interface ScoreEvent {
   created_at: string;
 }
 
+// ---- Enriched types (with joined fields, used in UI) ----
+
+export interface Post extends PostRow {
+  author?: PersonProfile | CompanyProfile;
+  reactions?: Reaction[];
+  reaction_counts?: Record<ReactionType, number>;
+  user_reaction?: ReactionType | null;
+  comment_count?: number;
+  save_count?: number;
+  is_saved?: boolean;
+}
+
+export type Reaction = ReactionRow;
+export type Follow = FollowRow;
+
+export interface Comment extends CommentRow {
+  author?: PersonProfile;
+}
+
+export interface Connection extends ConnectionRow {
+  requester?: PersonProfile;
+  recipient?: PersonProfile;
+}
+
+export interface MessageThread extends MessageThreadRow {
+  other_participant?: PersonProfile | CompanyProfile;
+  last_message?: Message;
+  unread_count?: number;
+}
+
+export type Message = MessageRow;
+
+export interface JobPost extends JobPostRow {
+  company?: CompanyProfile;
+  application_count?: number;
+  user_applied?: boolean;
+}
+
+export interface JobApplication extends JobApplicationRow {
+  applicant?: PersonProfile;
+  job?: JobPost;
+}
+
+export interface Endorsement extends EndorsementRow {
+  author?: PersonProfile;
+  project?: Post;
+}
+
+export interface Notification extends NotificationRow {
+  actor?: PersonProfile | CompanyProfile;
+}
+
+// ---- Database type for Supabase client ----
+
 export type Database = {
   public: {
     Tables: {
@@ -224,19 +258,19 @@ export type Database = {
       company_profiles: { Row: CompanyProfile; Insert: Omit<CompanyProfile, 'id' | 'created_at' | 'updated_at' | 'verified' | 'credibility_score' | 'response_rate' | 'total_hires'>; Update: Partial<Omit<CompanyProfile, 'id' | 'user_id'>> };
       skills: { Row: Skill; Insert: Omit<Skill, 'id'>; Update: Partial<Omit<Skill, 'id'>> };
       person_skills: { Row: { person_id: string; skill_id: string }; Insert: { person_id: string; skill_id: string }; Update: never };
-      posts: { Row: Post; Insert: Omit<Post, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<Post, 'id' | 'author_id'>> };
-      reactions: { Row: Reaction; Insert: Omit<Reaction, 'created_at'>; Update: Partial<Reaction> };
+      posts: { Row: PostRow; Insert: Omit<PostRow, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Omit<PostRow, 'id' | 'author_id'>> };
+      reactions: { Row: ReactionRow; Insert: Omit<ReactionRow, 'created_at'>; Update: Partial<ReactionRow> };
       saved_posts: { Row: { post_id: string; user_id: string; created_at: string }; Insert: { post_id: string; user_id: string }; Update: never };
-      comments: { Row: Comment; Insert: Omit<Comment, 'id' | 'created_at'>; Update: never };
-      follows: { Row: Follow; Insert: Omit<Follow, 'created_at'>; Update: never };
-      connections: { Row: Connection; Insert: Omit<Connection, 'id' | 'created_at' | 'updated_at' | 'status'>; Update: Partial<Pick<Connection, 'status'>> };
-      message_threads: { Row: MessageThread; Insert: Omit<MessageThread, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Pick<MessageThread, 'updated_at'>> };
-      messages: { Row: Message; Insert: Omit<Message, 'id' | 'created_at' | 'read'>; Update: Partial<Pick<Message, 'read'>> };
-      job_posts: { Row: JobPost; Insert: Omit<JobPost, 'id' | 'created_at' | 'updated_at' | 'status'>; Update: Partial<Omit<JobPost, 'id' | 'company_id'>> };
-      job_applications: { Row: JobApplication; Insert: Omit<JobApplication, 'id' | 'applied_at' | 'responded_at' | 'status'>; Update: Partial<Pick<JobApplication, 'status' | 'responded_at'>> };
-      endorsements: { Row: Endorsement; Insert: Omit<Endorsement, 'id' | 'created_at'>; Update: never };
+      comments: { Row: CommentRow; Insert: Omit<CommentRow, 'id' | 'created_at'>; Update: never };
+      follows: { Row: FollowRow; Insert: Omit<FollowRow, 'created_at'>; Update: never };
+      connections: { Row: ConnectionRow; Insert: Omit<ConnectionRow, 'id' | 'created_at' | 'updated_at' | 'status'>; Update: Partial<ConnectionRow> };
+      message_threads: { Row: MessageThreadRow; Insert: Omit<MessageThreadRow, 'id' | 'created_at' | 'updated_at'>; Update: Partial<MessageThreadRow> };
+      messages: { Row: MessageRow; Insert: Omit<MessageRow, 'id' | 'created_at' | 'read'>; Update: Partial<MessageRow> };
+      job_posts: { Row: JobPostRow; Insert: Omit<JobPostRow, 'id' | 'created_at' | 'updated_at' | 'status'>; Update: Partial<Omit<JobPostRow, 'id' | 'company_id'>> };
+      job_applications: { Row: JobApplicationRow; Insert: Omit<JobApplicationRow, 'id' | 'applied_at' | 'responded_at' | 'status'>; Update: Partial<JobApplicationRow> };
+      endorsements: { Row: EndorsementRow; Insert: Omit<EndorsementRow, 'id' | 'created_at'>; Update: never };
       score_events: { Row: ScoreEvent; Insert: Omit<ScoreEvent, 'id' | 'created_at'>; Update: never };
-      notifications: { Row: Notification; Insert: Omit<Notification, 'id' | 'created_at' | 'read'>; Update: Partial<Pick<Notification, 'read'>> };
+      notifications: { Row: NotificationRow; Insert: Omit<NotificationRow, 'id' | 'created_at' | 'read'>; Update: Partial<NotificationRow> };
     };
   };
 };

@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import NotificationItem from '@/components/notification/NotificationItem';
-import Button from '@/components/ui/Button';
+import { Loader2 } from 'lucide-react';
 import type { Notification } from '@/types/database';
 
 export default function NotificationsPage() {
@@ -11,54 +11,65 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     fetch('/api/notifications')
-      .then((r) => r.json())
-      .then((data) => { setNotifications(data.notifications ?? []); setLoading(false); });
+      .then(r => r.ok ? r.json() : { notifications: [] })
+      .then(data => {
+        setNotifications(data.notifications ?? []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   }, []);
 
+  const markRead = async (id: string) => {
+    setNotifications(p => p.map(n => n.id === id ? { ...n, read: true } : n));
+    await fetch('/api/notifications', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: [id] }),
+    }).catch(() => {});
+  };
+
   const markAllRead = async () => {
+    setNotifications(p => p.map(n => ({ ...n, read: true })));
     await fetch('/api/notifications', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ all: true }),
-    });
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    }).catch(() => {});
   };
 
-  const handleClick = async (notif: Notification) => {
-    if (!notif.read) {
-      await fetch('/api/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: [notif.id] }),
-      });
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n))
-      );
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-[#0F0F0F]/30" />
+      </div>
+    );
+  }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold">Notifications</h1>
-          <p className="text-buzz-muted text-sm">Only the stuff that matters.</p>
+          <h1 className="text-xl font-bold text-[#0F0F0F]">Notifications</h1>
+          <p className="text-[13px] text-[#0F0F0F]/50 mt-0.5">Only the stuff that matters.</p>
         </div>
-        <Button variant="ghost" size="sm" onClick={markAllRead}>
-          Mark all as read
-        </Button>
+        {notifications.some(n => !n.read) && (
+          <button onClick={markAllRead}
+            className="text-[12px] font-semibold text-[#0F0F0F] underline underline-offset-2">
+            Mark all read
+          </button>
+        )}
       </div>
 
-      {loading ? (
-        <p className="text-center text-buzz-muted py-8">Loading...</p>
-      ) : notifications.length === 0 ? (
-        <p className="text-center text-buzz-muted py-8">
-          Nothing here yet. Post your work to get noticed.
-        </p>
+      {notifications.length === 0 ? (
+        <div className="card-static p-8 text-center">
+          <p className="text-3xl mb-2">🔔</p>
+          <p className="text-[14px] font-semibold text-[#0F0F0F] mb-1">No notifications</p>
+          <p className="text-[12px] text-[#0F0F0F]/40">You&apos;re all caught up!</p>
+        </div>
       ) : (
-        <div className="card overflow-hidden">
+        <div className="card-static overflow-hidden">
           {notifications.map((n) => (
-            <NotificationItem key={n.id} notification={n} onClick={() => handleClick(n)} />
+            <NotificationItem key={n.id} notification={n} onClick={() => markRead(n.id)} />
           ))}
         </div>
       )}

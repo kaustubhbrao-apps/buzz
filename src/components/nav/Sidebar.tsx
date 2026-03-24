@@ -2,98 +2,68 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, Briefcase, MessageSquare, Bell, User, Settings } from 'lucide-react';
+import { Home, Compass, Briefcase, MessageCircle, Bell, User, Settings, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Avatar from '@/components/ui/Avatar';
-import { BAND_CONFIG } from '@/lib/score';
-import type { PersonProfile, CompanyProfile, ScoreBand } from '@/types/database';
+import type { PersonProfile, CompanyProfile } from '@/types/database';
 
-interface SidebarProps {
-  profile: PersonProfile | CompanyProfile;
-  accountType: 'person' | 'company';
-  unreadNotifications?: number;
-}
-
-const NAV_ITEMS = [
-  { label: 'Feed', icon: Home, href: '/feed' },
-  { label: 'Discover', icon: Search, href: '/discover' },
-  { label: 'Jobs', icon: Briefcase, href: '/jobs' },
-  { label: 'Messages', icon: MessageSquare, href: '/messages' },
-  { label: 'Notifications', icon: Bell, href: '/notifications' },
-  { label: 'Settings', icon: Settings, href: '/settings' },
+const NAV = [
+  { icon: Home, href: '/feed', label: 'Feed' },
+  { icon: Compass, href: '/discover', label: 'Discover' },
+  { icon: Briefcase, href: '/jobs', label: 'Jobs' },
+  { icon: MessageCircle, href: '/messages', label: 'Messages' },
+  { icon: Bell, href: '/notifications', label: 'Alerts' },
 ];
 
-export default function Sidebar({ profile, accountType, unreadNotifications = 0 }: SidebarProps) {
+export default function Sidebar({ profile, accountType, unreadNotifications = 0 }: {
+  profile: PersonProfile | CompanyProfile; accountType: 'person' | 'company'; unreadNotifications?: number;
+}) {
   const pathname = usePathname();
   const handle = 'handle' in profile ? profile.handle : '';
-  const name = accountType === 'person'
-    ? (profile as PersonProfile).full_name
-    : (profile as CompanyProfile).name;
-  const avatar = accountType === 'person'
-    ? (profile as PersonProfile).avatar_url
-    : (profile as CompanyProfile).logo_url;
-  const band = accountType === 'person'
-    ? (profile as PersonProfile).score_band
-    : null;
+  const name = accountType === 'person' ? (profile as PersonProfile).full_name : (profile as CompanyProfile).name;
+  const score = accountType === 'person' ? (profile as PersonProfile).buzz_score : 0;
 
   return (
-    <aside className="hidden md:flex flex-col w-60 h-screen sticky top-0 border-r border-buzz-border bg-white p-4">
-      <Link href="/" className="text-xl font-bold text-buzz-dark mb-8">
-        ⚡ Buzz
+    <aside className="hidden md:flex flex-col items-center w-[72px] h-screen sticky top-0 bg-white border-r border-[#F0F0F0] py-5">
+      {/* Logo */}
+      <Link href="/" className="mb-8">
+        <div className="w-10 h-10 rounded-2xl bg-[#FFD60A] flex items-center justify-center">
+          <Zap className="w-5 h-5 text-[#0F0F0F]" fill="#0F0F0F" />
+        </div>
       </Link>
 
-      <nav className="flex-1 space-y-1">
-        {NAV_ITEMS.map((item) => {
+      {/* Nav */}
+      <nav className="flex-1 flex flex-col items-center gap-1">
+        {NAV.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
-            <Link
-              key={item.href}
-              href={item.href}
+            <Link key={item.href} href={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-buzz-yellow/10 text-buzz-dark border-l-2 border-buzz-yellow -ml-px'
-                  : 'text-buzz-muted hover:bg-gray-50 hover:text-buzz-text'
+                'relative w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-150',
+                isActive ? 'bg-[#0F0F0F] text-white' : 'text-[#BBB] hover:bg-[#F5F5F5] hover:text-[#0F0F0F]'
               )}
+              title={item.label}
             >
-              <item.icon className="w-5 h-5" />
-              {item.label}
-              {item.label === 'Notifications' && unreadNotifications > 0 && (
-                <span className="ml-auto bg-buzz-error text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center">
+              <item.icon className="w-[20px] h-[20px]" strokeWidth={isActive ? 2.2 : 1.6} />
+              {item.icon === Bell && unreadNotifications > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#FFD60A] text-[#0F0F0F] text-[9px] font-bold rounded-full flex items-center justify-center">
                   {unreadNotifications}
                 </span>
               )}
             </Link>
           );
         })}
-
-        <Link
-          href={`/${handle}`}
-          className={cn(
-            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-            pathname === `/${handle}`
-              ? 'bg-buzz-yellow/10 text-buzz-dark border-l-2 border-buzz-yellow -ml-px'
-              : 'text-buzz-muted hover:bg-gray-50 hover:text-buzz-text'
-          )}
-        >
-          <User className="w-5 h-5" />
-          Profile
-        </Link>
       </nav>
 
-      {/* User card */}
-      <div className="border-t border-buzz-border pt-4 mt-4">
-        <Link href={`/${handle}`} className="flex items-center gap-2">
-          <Avatar src={avatar} name={name} size="sm" />
-          <div className="min-w-0">
-            <p className="text-sm font-medium truncate">{name}</p>
-            {band && (
-              <p className="text-xs">
-                {BAND_CONFIG[band as ScoreBand].emoji} {BAND_CONFIG[band as ScoreBand].label}
-              </p>
-            )}
-          </div>
+      {/* Bottom */}
+      <div className="flex flex-col items-center gap-2">
+        <Link href="/settings" className="w-11 h-11 flex items-center justify-center rounded-2xl text-[#BBB] hover:bg-[#F5F5F5] hover:text-[#0F0F0F] transition-all" title="Settings">
+          <Settings className="w-[20px] h-[20px]" strokeWidth={1.6} />
         </Link>
+        <Link href={`/${handle}`} title={name}
+          className="w-10 h-10 rounded-2xl bg-[#0F0F0F] text-white flex items-center justify-center text-xs font-bold">
+          {name.split(' ').map(w => w[0]).join('').slice(0, 2)}
+        </Link>
+        <div className="text-[10px] font-bold text-[#0F0F0F]">{score}</div>
       </div>
     </aside>
   );

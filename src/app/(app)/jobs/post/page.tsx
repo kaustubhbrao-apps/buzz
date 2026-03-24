@@ -1,179 +1,88 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Button from '@/components/ui/Button';
-import { createClient } from '@/lib/supabase/client';
-import { INDUSTRIES } from '@/lib/utils';
-import type { Skill, LocationType, ExperienceLevel, ApplyMethod } from '@/types/database';
+import type { LocationType, ExperienceLevel } from '@/types/database';
+
+const SKILLS = ['React', 'Node.js', 'TypeScript', 'Python', 'UI Design', 'Figma', 'Next.js', 'Go', 'AWS', 'Docker', 'GraphQL', 'PostgreSQL', 'Machine Learning', 'Flutter'];
 
 export default function PostJobPage() {
   const router = useRouter();
-  const supabase = createClient();
-  const [skills, setSkills] = useState<Skill[]>([]);
   const [title, setTitle] = useState('');
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [locationType, setLocationType] = useState<LocationType>('remote');
+  const [skills, setSkills] = useState<string[]>([]);
+  const [loc, setLoc] = useState<LocationType>('remote');
   const [city, setCity] = useState('');
-  const [salaryMin, setSalaryMin] = useState('');
-  const [salaryMax, setSalaryMax] = useState('');
-  const [proofRequirement, setProofRequirement] = useState('');
-  const [description, setDescription] = useState('');
-  const [applyMethod, setApplyMethod] = useState<ApplyMethod>('buzz_dm');
-  const [externalUrl, setExternalUrl] = useState('');
-  const [deadline, setDeadline] = useState('');
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel | ''>('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    supabase.from('skills').select('*').order('name').then(({ data }) => {
-      if (data) setSkills(data);
-    });
-  }, [supabase]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title) { setError('Title is required'); return; }
-    if (!salaryMin || !salaryMax) { setError('Please enter a salary range. Transparency builds trust.'); return; }
-    if (!proofRequirement) { setError('Proof requirement is required'); return; }
-
-    setLoading(true);
-    setError('');
-
-    const res = await fetch('/api/jobs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title,
-        skills_required: selectedSkills,
-        location_type: locationType,
-        city: locationType !== 'remote' ? city : null,
-        salary_min: parseInt(salaryMin),
-        salary_max: parseInt(salaryMax),
-        proof_requirement: proofRequirement,
-        description: description || null,
-        apply_method: applyMethod,
-        external_url: applyMethod === 'external' ? externalUrl : null,
-        deadline: deadline || null,
-        experience_level: experienceLevel || null,
-      }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error ?? 'Failed to create job');
-      setLoading(false);
-      return;
-    }
-
-    const data = await res.json();
-    router.push(`/jobs/${data.job?.id ?? ''}`);
-  };
+  const [salMin, setSalMin] = useState('');
+  const [salMax, setSalMax] = useState('');
+  const [proof, setProof] = useState('');
+  const [desc, setDesc] = useState('');
+  const [exp, setExp] = useState<ExperienceLevel | ''>('');
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Post a job</h1>
+    <div className="max-w-xl">
+      <h1 className="text-xl font-bold text-[#0F0F0F] mb-1">Post a job</h1>
+      <p className="text-[13px] text-[#0F0F0F]/50 mb-6">Tell candidates exactly what work to show.</p>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="label mb-1 block">Title *</label>
-          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="input" required />
-        </div>
-
-        <div>
-          <label className="label mb-1 block">Skills required</label>
-          <div className="flex flex-wrap gap-1.5">
-            {skills.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() =>
-                  setSelectedSkills((prev) =>
-                    prev.includes(s.name) ? prev.filter((x) => x !== s.name) : [...prev, s.name]
-                  )
-                }
-                className={`chip border ${selectedSkills.includes(s.name) ? 'border-buzz-yellow bg-buzz-yellow/10' : 'border-buzz-border'}`}
-              >
-                {s.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <label className="label mb-2 block">Location *</label>
-          <div className="flex gap-4">
-            {(['remote', 'hybrid', 'onsite'] as LocationType[]).map((lt) => (
-              <label key={lt} className="flex items-center gap-1.5 text-sm">
-                <input type="radio" name="location" checked={locationType === lt} onChange={() => setLocationType(lt)} />
-                {lt.charAt(0).toUpperCase() + lt.slice(1)}
-              </label>
-            ))}
-          </div>
-          {locationType !== 'remote' && (
-            <input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="input mt-2" placeholder="City" />
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-5">
+        <div className="card-static p-5 space-y-4">
           <div>
-            <label className="label mb-1 block">₹ Salary min (annual) *</label>
-            <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} className="input" placeholder="800000" />
+            <label className="label mb-1.5 block">Title *</label>
+            <input value={title} onChange={e => setTitle(e.target.value)} className="input" placeholder="Senior Frontend Engineer" />
           </div>
+
           <div>
-            <label className="label mb-1 block">₹ Salary max (annual) *</label>
-            <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} className="input" placeholder="1500000" />
+            <label className="label mb-2 block">Skills required</label>
+            <div className="flex flex-wrap gap-1.5">
+              {SKILLS.map(s => (
+                <button key={s} onClick={() => setSkills(p => p.includes(s) ? p.filter(x => x !== s) : [...p, s])}
+                  className={`chip transition-all ${skills.includes(s) ? 'bg-[#FFD60A] text-[#0F0F0F]' : 'bg-[#F5F5F5] text-[#0F0F0F]/50 hover:bg-[#EBEBEB]'}`}>
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div>
-          <label className="label mb-1 block">Proof requirement *</label>
-          <textarea
-            value={proofRequirement}
-            onChange={(e) => setProofRequirement(e.target.value)}
-            className="input min-h-[80px] resize-none"
-            placeholder="Show us a live product built in React"
-          />
-          <p className="text-xs text-buzz-muted mt-1">Great proof prompts get 3x more quality applications.</p>
-        </div>
-
-        <div>
-          <label className="label mb-1 block">Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value.slice(0, 500))}
-            className="input min-h-[80px] resize-none"
-            maxLength={500}
-          />
-          <p className="text-xs text-buzz-muted text-right">{description.length}/500</p>
-        </div>
-
-        <div>
-          <label className="label mb-2 block">Apply method</label>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-1.5 text-sm">
-              <input type="radio" checked={applyMethod === 'buzz_dm'} onChange={() => setApplyMethod('buzz_dm')} />
-              Buzz DM (recommended)
-            </label>
-            <label className="flex items-center gap-1.5 text-sm">
-              <input type="radio" checked={applyMethod === 'external'} onChange={() => setApplyMethod('external')} />
-              External link
-            </label>
-          </div>
-          {applyMethod === 'external' && (
-            <input type="url" value={externalUrl} onChange={(e) => setExternalUrl(e.target.value)} className="input mt-2" placeholder="https://..." />
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label mb-1 block">Deadline</label>
-            <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="input" />
+            <label className="label mb-2 block">Location *</label>
+            <div className="flex gap-2">
+              {(['remote', 'hybrid', 'onsite'] as LocationType[]).map(l => (
+                <button key={l} onClick={() => setLoc(l)}
+                  className={`flex-1 py-2.5 rounded-xl text-[12px] font-semibold transition-all ${loc === l ? 'bg-[#0F0F0F] text-white' : 'bg-[#F5F5F5] text-[#0F0F0F]/50 hover:bg-[#EBEBEB]'}`}>
+                  {l.charAt(0).toUpperCase() + l.slice(1)}
+                </button>
+              ))}
+            </div>
+            {loc !== 'remote' && <input value={city} onChange={e => setCity(e.target.value)} className="input mt-2" placeholder="City" />}
           </div>
+        </div>
+
+        <div className="card-static p-5 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label mb-1.5 block">Salary min (₹/year) *</label>
+              <input type="number" value={salMin} onChange={e => setSalMin(e.target.value)} className="input" placeholder="1500000" />
+            </div>
+            <div>
+              <label className="label mb-1.5 block">Salary max (₹/year) *</label>
+              <input type="number" value={salMax} onChange={e => setSalMax(e.target.value)} className="input" placeholder="2500000" />
+            </div>
+          </div>
+
           <div>
-            <label className="label mb-1 block">Experience level</label>
-            <select value={experienceLevel} onChange={(e) => setExperienceLevel(e.target.value as ExperienceLevel)} className="input">
+            <label className="label mb-1.5 block">Proof requirement *</label>
+            <textarea value={proof} onChange={e => setProof(e.target.value)} className="input min-h-[80px] resize-none" placeholder="Show us a live product built in React" />
+            <p className="text-[11px] text-[#0F0F0F]/30 mt-1">Great proof prompts get 3x more quality applications.</p>
+          </div>
+
+          <div>
+            <label className="label mb-1.5 block">Description</label>
+            <textarea value={desc} onChange={e => setDesc(e.target.value.slice(0, 500))} className="input min-h-[80px] resize-none" maxLength={500} />
+            <p className="text-[11px] text-[#0F0F0F]/30 text-right mt-1">{desc.length}/500</p>
+          </div>
+
+          <div>
+            <label className="label mb-1.5 block">Experience level</label>
+            <select value={exp} onChange={e => setExp(e.target.value as ExperienceLevel)} className="input">
               <option value="">Any</option>
               <option value="fresher">Fresher</option>
               <option value="junior">Junior</option>
@@ -183,10 +92,8 @@ export default function PostJobPage() {
           </div>
         </div>
 
-        {error && <p className="text-buzz-error text-sm">{error}</p>}
-
-        <Button type="submit" loading={loading} fullWidth>Post job</Button>
-      </form>
+        <button onClick={() => router.push('/jobs')} className="btn-primary w-full py-3">Post job</button>
+      </div>
     </div>
   );
 }

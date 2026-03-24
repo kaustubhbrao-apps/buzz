@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import type { Connection, ConnectionStatus } from '@/types/database';
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -27,14 +28,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Connection already exists' }, { status: 400 });
   }
 
-  const { data: connection, error } = await supabase
-    .from('connections')
-    .insert({ requester_id: user.id, recipient_id, note: note.trim() })
-    .select()
-    .single();
+  const { error } = await supabase.from('connections')
+    // @ts-ignore supabase-js type inference limitation
+    .insert({ requester_id: user.id, recipient_id, note: note.trim() });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ connection });
+  return NextResponse.json({ success: true });
 }
 
 export async function PATCH(request: NextRequest) {
@@ -44,24 +43,32 @@ export async function PATCH(request: NextRequest) {
 
   const { connectionId, action } = await request.json();
 
-  const { data: connection, error } = await supabase
+  // Get connection first to know participants
+  const { data } = await supabase
     .from('connections')
-    .update({ status: action === 'accept' ? 'accepted' : 'declined' })
+    .select('requester_id, recipient_id')
     .eq('id', connectionId)
     .eq('recipient_id', user.id)
-    .select()
     .single();
+
+  const conn = data as unknown as Pick<Connection, 'requester_id' | 'recipient_id'> | null;
+  if (!conn) return NextResponse.json({ error: 'Connection not found' }, { status: 404 });
+
+  const newStatus = (action === 'accept' ? 'accepted' : 'declined') as ConnectionStatus;
+  const { error } = await supabase.from('connections')
+    // @ts-ignore supabase-js type inference limitation
+    .update({ status: newStatus }).eq('id', connectionId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Create message thread if accepted
-  if (action === 'accept' && connection) {
+  if (action === 'accept') {
     await supabase.from('message_threads').insert({
-      participant_1: connection.requester_id,
-      participant_2: connection.recipient_id,
+      participant_1: conn.requester_id,
+      participant_2: conn.recipient_id,
       thread_type: 'direct',
     });
   }
 
-  return NextResponse.json({ connection });
+  return NextResponse.json({ success: true });
 }

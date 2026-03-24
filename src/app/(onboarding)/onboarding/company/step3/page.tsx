@@ -2,142 +2,64 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { Mail, Link2, Check } from 'lucide-react';
 
 export default function CompanyStep3() {
   const router = useRouter();
-  const supabase = createClient();
   const [method, setMethod] = useState<'domain' | 'linkedin' | null>(null);
-  const [domainEmail, setDomainEmail] = useState('');
-  const [linkedinUrl, setLinkedinUrl] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [linkedin, setLinkedin] = useState('');
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState('');
 
-  const getHandle = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push('/login'); return null; }
-    const { data } = await supabase
-      .from('company_profiles')
-      .select('handle')
-      .eq('user_id', user.id)
-      .single();
-    return data?.handle;
-  };
-
-  const handleDomain = async () => {
-    if (!domainEmail) return;
-    setLoading(true);
-    setError('');
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push('/login'); return; }
-
-    await supabase
-      .from('company_profiles')
-      .update({ verification_method: 'domain' })
-      .eq('user_id', user.id);
-
-    // In production, send verification email via Resend API
-    setSent(true);
-    setLoading(false);
-  };
-
-  const handleLinkedin = async () => {
-    if (!linkedinUrl) return;
-    setLoading(true);
-    setError('');
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push('/login'); return; }
-
-    await supabase
-      .from('company_profiles')
-      .update({ linkedin_url: linkedinUrl, verification_method: 'linkedin' })
-      .eq('user_id', user.id);
-
-    const handle = await getHandle();
-    router.push(handle ? `/${handle}` : '/feed');
-  };
-
-  const handleSkip = async () => {
-    const handle = await getHandle();
-    router.push(handle ? `/${handle}` : '/feed');
-  };
+  if (sent) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-14 h-14 rounded-2xl bg-[#FFD60A] flex items-center justify-center mx-auto mb-4">
+          <Check className="w-7 h-7 text-[#0F0F0F]" />
+        </div>
+        <h2 className="font-bold text-[15px] text-[#0F0F0F] mb-1">{method === 'domain' ? 'Verification email sent' : 'Submitted for review'}</h2>
+        <p className="text-[13px] text-[#0F0F0F]/50 mb-6">{method === 'domain' ? `Check ${email}` : 'We will review in 24 hours'}</p>
+        <button onClick={() => router.push('/feed')} className="btn-primary">Go to my page →</button>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-1">Make it official</h1>
-      <p className="text-buzz-muted text-sm mb-6">
-        Verified companies get more applicants and higher trust. Step 3 of 3.
-      </p>
+      <h1 className="text-xl font-bold text-[#0F0F0F] mb-1">Make it official</h1>
+      <p className="text-[13px] text-[#0F0F0F]/50 mb-6">Verified companies get more applicants. Step 3 of 3.</p>
 
-      {sent ? (
-        <div className="card p-6 text-center">
-          <p className="text-2xl mb-2">📧</p>
-          <h2 className="font-semibold mb-2">Verification email sent</h2>
-          <p className="text-buzz-muted text-sm mb-4">Check your inbox at <strong>{domainEmail}</strong></p>
-          <button onClick={handleSkip} className="btn-primary">Continue to my page →</button>
-        </div>
-      ) : (
-        <>
-          <div className="space-y-4 mb-6">
-            {/* Option A: Domain */}
-            <div
-              className={`card p-5 cursor-pointer border-2 transition-colors ${
-                method === 'domain' ? 'border-buzz-yellow' : 'border-transparent'
-              }`}
-              onClick={() => setMethod('domain')}
-            >
-              <h3 className="font-semibold mb-2">📧 Verify with domain email</h3>
-              {method === 'domain' && (
-                <div className="mt-3">
-                  <input
-                    type="email"
-                    value={domainEmail}
-                    onChange={(e) => setDomainEmail(e.target.value)}
-                    className="input mb-3"
-                    placeholder="name@yourcompany.com"
-                  />
-                  <button onClick={handleDomain} disabled={loading} className="btn-primary w-full">
-                    {loading ? 'Sending...' : 'Send verification email'}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Option B: LinkedIn */}
-            <div
-              className={`card p-5 cursor-pointer border-2 transition-colors ${
-                method === 'linkedin' ? 'border-buzz-yellow' : 'border-transparent'
-              }`}
-              onClick={() => setMethod('linkedin')}
-            >
-              <h3 className="font-semibold mb-2">🔗 Verify with LinkedIn page</h3>
-              {method === 'linkedin' && (
-                <div className="mt-3">
-                  <input
-                    type="url"
-                    value={linkedinUrl}
-                    onChange={(e) => setLinkedinUrl(e.target.value)}
-                    className="input mb-3"
-                    placeholder="linkedin.com/company/..."
-                  />
-                  <button onClick={handleLinkedin} disabled={loading} className="btn-primary w-full">
-                    {loading ? 'Submitting...' : 'Submit for review (24hrs)'}
-                  </button>
-                </div>
-              )}
-            </div>
+      <div className="space-y-3 mb-6">
+        <button onClick={() => setMethod('domain')}
+          className={`card-static w-full p-5 text-left transition-all ${method === 'domain' ? 'ring-2 ring-[#FFD60A]' : ''}`}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-[#F5F5F5] flex items-center justify-center"><Mail className="w-4 h-4 text-[#0F0F0F]/50" /></div>
+            <span className="font-semibold text-[13px] text-[#0F0F0F]">Verify with domain email</span>
           </div>
+          {method === 'domain' && (
+            <div className="mt-3">
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="input mb-3" placeholder="name@yourcompany.com" />
+              <button onClick={() => email && setSent(true)} className="btn-primary w-full text-[12px]">Send verification email</button>
+            </div>
+          )}
+        </button>
 
-          {error && <p className="text-buzz-error text-sm mb-4">{error}</p>}
+        <button onClick={() => setMethod('linkedin')}
+          className={`card-static w-full p-5 text-left transition-all ${method === 'linkedin' ? 'ring-2 ring-[#FFD60A]' : ''}`}>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-9 h-9 rounded-xl bg-[#F5F5F5] flex items-center justify-center"><Link2 className="w-4 h-4 text-[#0F0F0F]/50" /></div>
+            <span className="font-semibold text-[13px] text-[#0F0F0F]">Verify with company page</span>
+          </div>
+          {method === 'linkedin' && (
+            <div className="mt-3">
+              <input type="url" value={linkedin} onChange={(e) => setLinkedin(e.target.value)} className="input mb-3" placeholder="linkedin.com/company/..." />
+              <button onClick={() => linkedin && setSent(true)} className="btn-primary w-full text-[12px]">Submit for review (24hrs)</button>
+            </div>
+          )}
+        </button>
+      </div>
 
-          <button onClick={handleSkip} className="btn-ghost w-full text-sm">
-            Skip for now <span className="text-buzz-warning">⚠️ Unverified badge until verified</span>
-          </button>
-        </>
-      )}
+      <button onClick={() => router.push('/feed')} className="btn-ghost w-full text-[13px]">Skip for now</button>
     </div>
   );
 }

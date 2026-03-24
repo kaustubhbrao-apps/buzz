@@ -1,67 +1,27 @@
-import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
-import { createClient } from '@/lib/supabase/server';
 import Sidebar from '@/components/nav/Sidebar';
 import TopBar from '@/components/nav/TopBar';
 import BottomNav from '@/components/nav/BottomNav';
+import type { PersonProfile } from '@/types/database';
 
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+const ME: PersonProfile = {
+  id: 'm1', user_id: 'mu1', handle: 'arjun-mehta', full_name: 'Arjun Mehta',
+  avatar_url: null, headline: 'Full-stack dev · Bangalore', city: 'Bangalore',
+  open_to: ['full_time', 'collab'], buzz_score: 340, score_band: 'charged',
+  streak_count: 5, streak_last_post: '2026-03-22', profile_complete: true,
+  created_at: '', updated_at: '',
+};
 
-  if (!user) redirect('/login');
-
-  const { data: userData } = await supabase
-    .from('users')
-    .select('account_type')
-    .eq('id', user.id)
-    .single();
-
-  let profile = null;
-  const accountType = userData?.account_type ?? 'person';
-
-  if (accountType === 'person') {
-    const { data } = await supabase
-      .from('person_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-    profile = data;
-  } else {
-    const { data } = await supabase
-      .from('company_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-    profile = data;
-  }
-
-  if (!profile) redirect('/signup');
-
-  const { count: unreadCount } = await supabase
-    .from('notifications')
-    .select('*', { count: 'exact', head: true })
-    .eq('recipient_id', user.id)
-    .eq('read', false);
-
-  const handle = profile.handle;
-
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
-      <Sidebar
-        profile={profile}
-        accountType={accountType}
-        unreadNotifications={unreadCount ?? 0}
-      />
-
-      <div className="flex-1 flex flex-col">
-        <TopBar profile={profile} handle={handle} unreadNotifications={unreadCount ?? 0} />
-
-        <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-6 pb-20 md:pb-6">
+      <Sidebar profile={ME} accountType="person" unreadNotifications={3} />
+      <div className="flex-1 min-w-0">
+        <TopBar profile={ME} handle={ME.handle} unreadNotifications={3} />
+        <main className="w-full px-5 md:px-6 py-5 pb-20 md:pb-5">
           <Suspense>{children}</Suspense>
         </main>
-
-        <BottomNav unreadNotifications={unreadCount ?? 0} />
+        <BottomNav unreadNotifications={3} />
       </div>
     </div>
   );

@@ -2,82 +2,33 @@
 
 import { BAND_CONFIG } from '@/lib/score';
 import type { ScoreBand } from '@/types/database';
-import Link from 'next/link';
 
-interface BuzzScoreProps {
-  score: number;
-  band: ScoreBand;
-  percentile?: number;
-  monthlyDelta?: number;
-  streak?: number;
-  showGrowCTA?: boolean;
-}
-
-const BAND_RANGES: Record<ScoreBand, [number, number]> = {
-  seedling: [0, 199],
-  charged: [200, 499],
-  buzzing: [500, 799],
-  elite: [800, 1199],
-  legend: [1200, 2000],
+const RANGES: Record<ScoreBand, [number, number]> = {
+  seedling: [0, 199], charged: [200, 499], buzzing: [500, 799], elite: [800, 1199], legend: [1200, 2000],
 };
 
-export default function BuzzScore({
-  score,
-  band,
-  percentile,
-  monthlyDelta,
-  streak,
-  showGrowCTA,
-}: BuzzScoreProps) {
+export default function BuzzScore({ score, band, monthlyDelta, streak, showGrowCTA }: {
+  score: number; band: ScoreBand; percentile?: number; monthlyDelta?: number; streak?: number; showGrowCTA?: boolean;
+}) {
   const config = BAND_CONFIG[band];
-  const [min, max] = BAND_RANGES[band];
-  const progress = Math.min(((score - min) / (max - min)) * 100, 100);
-
-  if (score === 0) {
-    return (
-      <div className="text-sm text-buzz-muted">
-        Post your first work to start building your score.
-      </div>
-    );
-  }
+  const [min, max] = RANGES[band];
+  const pct = Math.min(((score - min) / (max - min)) * 100, 100);
 
   return (
     <div>
-      <p className="text-[10px] font-semibold text-buzz-muted uppercase tracking-wider mb-2">
-        ⚡ Buzz Score
-      </p>
-
-      <div className="score-bar mb-2">
-        <div
-          className="score-fill"
-          style={{ width: `${progress}%`, backgroundColor: config.color }}
-        />
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[11px] font-bold text-[#0F0F0F]/40 uppercase tracking-widest">Buzz Score</span>
+        <span className="text-[11px] text-[#0F0F0F]/50">{config.emoji} {config.label}</span>
       </div>
-
-      <div className="flex items-baseline gap-2 mb-1">
-        <span className="text-2xl font-bold">{score}</span>
-        <span className="text-sm">
-          {config.emoji} {config.label}
-        </span>
+      <div className="text-4xl font-bold text-[#0F0F0F] tracking-tight">{score}</div>
+      <div className="score-bar mt-3 mb-2">
+        <div className="score-fill bg-[#FFD60A]" style={{ width: `${pct}%` }} />
       </div>
-
-      {percentile && (
-        <p className="text-xs text-buzz-muted">Top {percentile}%</p>
-      )}
-
-      {monthlyDelta !== undefined && monthlyDelta > 0 && (
-        <p className="text-xs text-buzz-success">+{monthlyDelta} pts this month</p>
-      )}
-
-      {streak !== undefined && streak > 0 && (
-        <p className="text-xs">🔥 {streak} day streak</p>
-      )}
-
-      {showGrowCTA && (
-        <Link href="/feed" className="text-xs text-buzz-muted hover:underline mt-1 block">
-          How to grow your score →
-        </Link>
-      )}
+      <div className="flex items-center gap-3 text-[11px]">
+        {monthlyDelta !== undefined && monthlyDelta > 0 && <span className="text-[#0F0F0F] font-semibold">+{monthlyDelta} this month</span>}
+        {streak !== undefined && streak > 0 && <span className="text-[#0F0F0F]/50">🔥 {streak}d streak</span>}
+      </div>
+      {showGrowCTA && <button className="mt-3 text-[11px] font-semibold text-[#0F0F0F] underline underline-offset-2">How to grow →</button>}
     </div>
   );
 }

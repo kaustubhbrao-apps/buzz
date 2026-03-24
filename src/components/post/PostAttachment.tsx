@@ -1,58 +1,29 @@
 import Image from 'next/image';
 import type { AttachmentType } from '@/types/database';
-import { FileText } from 'lucide-react';
+import { ExternalLink, FileText } from 'lucide-react';
 
-interface PostAttachmentProps {
-  url: string;
-  type: AttachmentType;
-}
-
-export default function PostAttachment({ url, type }: PostAttachmentProps) {
+export default function PostAttachment({ url, type }: { url: string; type: AttachmentType }) {
   if (type === 'image') {
-    return (
-      <div className="relative aspect-video rounded-lg overflow-hidden bg-buzz-border">
-        <Image src={url} alt="Post attachment" fill className="object-cover" />
-      </div>
-    );
+    return <div className="relative aspect-[16/9] bg-[#F5F5F5]"><Image src={url} alt="" fill className="object-cover" /></div>;
   }
-
   if (type === 'video') {
-    return (
-      <video controls className="w-full rounded-lg max-h-[400px]">
-        <source src={url} />
-      </video>
-    );
+    return <video controls className="w-full max-h-[400px] bg-black"><source src={url} /></video>;
   }
-
   if (type === 'link') {
-    const domain = (() => {
-      try { return new URL(url).hostname; } catch { return url; }
-    })();
-
+    const domain = (() => { try { return new URL(url).hostname; } catch { return url; } })();
     return (
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block card p-4 hover:shadow-lg transition-shadow"
-      >
-        <p className="text-sm font-medium text-buzz-text truncate">{url}</p>
-        <p className="text-xs text-buzz-muted mt-1">{domain}</p>
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block mx-5 mb-4 rounded-2xl bg-[#F5F5F5] p-4 hover:bg-[#EBEBEB] transition-all">
+        <div className="flex items-center gap-2 mb-1">
+          <ExternalLink className="w-3.5 h-3.5 text-[#BBB]" />
+          <span className="text-[11px] text-[#BBB] uppercase tracking-wider font-semibold">{domain}</span>
+        </div>
+        <p className="text-sm font-medium text-[#0F0F0F] truncate">{url}</p>
       </a>
     );
   }
-
-  // file
-  const filename = url.split('/').pop() ?? 'File';
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-3 card p-4 hover:shadow-lg transition-shadow"
-    >
-      <FileText className="w-8 h-8 text-buzz-muted" />
-      <span className="text-sm truncate">{filename}</span>
+    <a href={url} target="_blank" rel="noopener noreferrer" className="mx-5 mb-4 flex items-center gap-3 rounded-2xl bg-[#F5F5F5] p-4 hover:bg-[#EBEBEB] transition-all">
+      <FileText className="w-6 h-6 text-[#BBB]" /><span className="text-sm text-[#666] truncate">{url.split('/').pop()}</span>
     </a>
   );
 }
