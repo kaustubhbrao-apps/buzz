@@ -3,8 +3,24 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(request: NextRequest) {
+  // Try server client first (cookies), then fall back to Authorization header
+  let user = null;
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user: cookieUser } } = await supabase.auth.getUser();
+  user = cookieUser;
+
+  if (!user) {
+    // Fall back to Authorization header (for Vercel where cookies may not be ready)
+    const authHeader = request.headers.get('Authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.slice(7);
+      const admin = createAdminClient();
+      const { data: { user: tokenUser } } = await admin.auth.getUser(token);
+      user = tokenUser;
+    }
+  }
+
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { account_type } = await request.json();

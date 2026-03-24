@@ -24,9 +24,20 @@ export default function SignupPage() {
     setError('');
 
     try {
+      // Get the current session token from the browser client
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('Not signed in. Please sign in with Google first.');
+      }
+
       const res = await fetch('/api/signup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({ account_type: accountType }),
       });
 
