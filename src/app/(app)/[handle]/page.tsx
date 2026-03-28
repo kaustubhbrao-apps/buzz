@@ -76,7 +76,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
         <Loader2 className="w-6 h-6 animate-spin text-[#0F0F0F]/30" />
       </div>
     );
@@ -84,7 +84,7 @@ export default function ProfilePage() {
 
   if (notFound || !profile) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
         <div className="text-center">
           <p className="text-4xl mb-3">🔍</p>
           <h1 className="text-xl font-bold text-[#0F0F0F] mb-1">Profile not found</h1>

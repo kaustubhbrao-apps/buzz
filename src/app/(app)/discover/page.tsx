@@ -116,9 +116,9 @@ export default function DiscoverPage() {
                 <button
                   onClick={() => toggleFollow(p.user_id)}
                   disabled={followLoading === p.user_id}
-                  className={`text-[11px] font-bold rounded-full px-3 py-1 transition-all ${
+                  className={`text-[11px] font-bold rounded-full px-3 py-1 transition-all active:scale-95 ${
                     followingIds.has(p.user_id)
-                      ? 'bg-[#F5F5F5] text-[#0F0F0F]/50'
+                      ? 'bg-[#F5F5F3] text-[#0F0F0F]/50 border border-[#EAEAE8]'
                       : 'text-[#0F0F0F] bg-[#FFD60A] hover:bg-[#FFC800]'
                   }`}>
                   {followingIds.has(p.user_id) ? 'Following' : 'Follow'}

@@ -30,7 +30,7 @@ export default function JobCard({ job, onApply, userApplied }: { job: JobPost; o
       <h3 className="text-[15px] font-bold text-[#0F0F0F] mb-2">{job.title}</h3>
 
       <div className="flex flex-wrap gap-1.5 mb-3">
-        {job.skills_required?.map((s) => <span key={s} className="chip bg-[#F5F5F5] text-[#0F0F0F]/60">{s}</span>)}
+        {job.skills_required?.map((s) => <span key={s} className="chip text-[#0F0F0F]/60">{s}</span>)}
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-[#0F0F0F]/50 mb-3">

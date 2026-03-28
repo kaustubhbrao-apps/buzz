@@ -60,7 +60,7 @@ export default function PostCard({ post }: { post: Post }) {
             <div className="flex items-center gap-2">
               <Link href={`/${handle}`} className="font-semibold text-[13px] text-[#0F0F0F] hover:underline truncate">{name}</Link>
               {isPerson && (author as PersonProfile)?.score_band && <ScoreBand band={(author as PersonProfile).score_band} showLabel={false} />}
-              {isWork && <span className="chip bg-[#FFD60A] text-[#0F0F0F]">work</span>}
+              {isWork && <span className="chip bg-[#FFD60A]/15 text-[#0F0F0F] border-[#FFD60A]/30">work</span>}
             </div>
             <p className="text-[12px] text-[#888]">{headline && `${headline} · `}{timeAgo(post.created_at)}</p>
           </div>
@@ -73,7 +73,7 @@ export default function PostCard({ post }: { post: Post }) {
           <div className="mb-4">
             <p className={`text-[14px] leading-[1.75] text-[#1a1a1a] whitespace-pre-wrap ${!expanded && isLong ? 'line-clamp-4' : ''}`}>{content}</p>
             {isLong && !expanded && (
-              <button onClick={() => setExpanded(true)} className="text-[13px] font-semibold text-[#0F0F0F] mt-1">more</button>
+              <button onClick={() => setExpanded(true)} className="text-[13px] font-semibold text-[#0F0F0F] mt-1 hover:underline">more</button>
             )}
           </div>
         )}
@@ -81,7 +81,7 @@ export default function PostCard({ post }: { post: Post }) {
         {post.skills_tagged?.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {post.skills_tagged.map((s) => (
-              <span key={s} className="chip bg-[#F5F5F5] text-[#0F0F0F]/60">{s}</span>
+              <span key={s} className="chip">{s}</span>
             ))}
           </div>
         )}
@@ -90,7 +90,7 @@ export default function PostCard({ post }: { post: Post }) {
       {post.attachment_url && post.attachment_type && <PostAttachment url={post.attachment_url} type={post.attachment_type} />}
 
       {(total > 0 || (post.comment_count ?? 0) > 0) && (
-        <div className="px-5 py-2 flex items-center justify-between text-[11px] text-[#0F0F0F]/40">
+        <div className="px-5 py-2 flex items-center justify-between text-[11px] text-[#0F0F0F]/40 border-t border-[#EAEAE8]">
           <span>{total > 0 && `${total} reactions`}</span>
           <div className="flex gap-3">
             {(post.comment_count ?? 0) > 0 && <span>{post.comment_count} comments</span>}
@@ -98,15 +98,15 @@ export default function PostCard({ post }: { post: Post }) {
         </div>
       )}
 
-      <div className="px-3 py-2 border-t border-[#F0F0F0]">
+      <div className="px-3 py-2 border-t border-[#EAEAE8]">
         <div className="flex items-center">
           {REACTIONS.map((type) => {
             const c = REACTION_CONFIG[type];
             const isOn = active === type;
             return (
               <button key={type} onClick={() => react(type)} title={c.label}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 ${
-                  isOn ? 'text-[#0F0F0F] bg-[#FFD60A]/20' : 'text-[#666] hover:text-[#0F0F0F] hover:bg-[#F5F5F5]'
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 active:scale-95 ${
+                  isOn ? 'text-[#0F0F0F] bg-[#FFD60A]/15' : 'text-[#666] hover:text-[#0F0F0F] hover:bg-[#F5F5F3]'
                 }`}>
                 <span className="text-base">{c.emoji}</span>
                 <span className="hidden sm:inline text-[12px]">{c.label}</span>
@@ -115,14 +115,14 @@ export default function PostCard({ post }: { post: Post }) {
             );
           })}
           <div className="ml-auto flex items-center gap-0.5">
-            <button className="p-2.5 rounded-xl text-[#888] hover:text-[#0F0F0F] hover:bg-[#F5F5F5] transition-all">
+            <button className="p-2.5 rounded-xl text-[#888] hover:text-[#0F0F0F] hover:bg-[#F5F5F3] transition-all active:scale-90">
               <MessageCircle className="w-[18px] h-[18px]" />
             </button>
-            <button className="p-2.5 rounded-xl text-[#888] hover:text-[#0F0F0F] hover:bg-[#F5F5F5] transition-all">
+            <button className="p-2.5 rounded-xl text-[#888] hover:text-[#0F0F0F] hover:bg-[#F5F5F3] transition-all active:scale-90">
               <Repeat2 className="w-[18px] h-[18px]" />
             </button>
             <button onClick={toggleSave}
-              className={`p-2.5 rounded-xl transition-all ${saved ? 'text-[#FFD60A]' : 'text-[#888] hover:text-[#0F0F0F] hover:bg-[#F5F5F5]'}`}>
+              className={`p-2.5 rounded-xl transition-all active:scale-90 ${saved ? 'text-[#FFD60A]' : 'text-[#888] hover:text-[#0F0F0F] hover:bg-[#F5F5F3]'}`}>
               <Bookmark className={`w-[18px] h-[18px] ${saved ? 'fill-[#FFD60A]' : ''}`} />
             </button>
           </div>

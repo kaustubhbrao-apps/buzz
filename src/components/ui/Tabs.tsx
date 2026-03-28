@@ -16,7 +16,7 @@ interface TabsProps {
 
 export default function Tabs({ tabs, activeTab, onChange }: TabsProps) {
   return (
-    <div className="flex border-b border-buzz-border">
+    <div className="flex border-b border-[#EAEAE8]">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -24,8 +24,8 @@ export default function Tabs({ tabs, activeTab, onChange }: TabsProps) {
           className={cn(
             'flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px',
             activeTab === tab.id
-              ? 'border-buzz-yellow text-buzz-dark'
-              : 'border-transparent text-buzz-muted hover:text-buzz-text'
+              ? 'border-[#FFD60A] text-[#0F0F0F]'
+              : 'border-transparent text-[#999] hover:text-[#0F0F0F]'
           )}
         >
           {tab.icon}

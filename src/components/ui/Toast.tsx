@@ -50,7 +50,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={cn('rounded-card px-4 py-3 shadow-lg flex items-center justify-between', typeStyles[t.type])}
+            className={cn('rounded-2xl px-4 py-3 shadow-lg flex items-center justify-between animate-fade-up', typeStyles[t.type])}
           >
             <span className="text-sm">{t.message}</span>
             <button onClick={() => dismiss(t.id)} className="ml-2 opacity-70 hover:opacity-100">

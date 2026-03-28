@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Compass, Briefcase, MessageCircle, Bell, User, Settings, Zap, LayoutDashboard } from 'lucide-react';
+import { Home, Compass, Briefcase, MessageCircle, Bell, Settings, Zap, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { PersonProfile, CompanyProfile } from '@/types/database';
 
@@ -28,15 +28,13 @@ export default function Sidebar({ profile, accountType, unreadNotifications = 0 
     : BASE_NAV;
 
   return (
-    <aside className="hidden md:flex flex-col items-center w-[72px] h-screen sticky top-0 bg-white border-r border-[#F0F0F0] py-5">
-      {/* Logo */}
+    <aside className="hidden md:flex flex-col items-center w-[72px] h-screen sticky top-0 bg-white border-r border-[#EAEAE8] py-5">
       <Link href="/" className="mb-8">
         <div className="w-10 h-10 rounded-2xl bg-[#FFD60A] flex items-center justify-center">
           <Zap className="w-5 h-5 text-[#0F0F0F]" fill="#0F0F0F" />
         </div>
       </Link>
 
-      {/* Nav */}
       <nav className="flex-1 flex flex-col items-center gap-1">
         {NAV.map((item) => {
           const isActive = pathname.startsWith(item.href);
@@ -44,7 +42,7 @@ export default function Sidebar({ profile, accountType, unreadNotifications = 0 
             <Link key={item.href} href={item.href}
               className={cn(
                 'relative w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-150',
-                isActive ? 'bg-[#0F0F0F] text-white' : 'text-[#BBB] hover:bg-[#F5F5F5] hover:text-[#0F0F0F]'
+                isActive ? 'bg-[#0F0F0F] text-white' : 'text-[#BBB] hover:bg-[#F5F5F3] hover:text-[#0F0F0F]'
               )}
               title={item.label}
             >
@@ -59,9 +57,8 @@ export default function Sidebar({ profile, accountType, unreadNotifications = 0 
         })}
       </nav>
 
-      {/* Bottom */}
       <div className="flex flex-col items-center gap-2">
-        <Link href="/settings" className="w-11 h-11 flex items-center justify-center rounded-2xl text-[#BBB] hover:bg-[#F5F5F5] hover:text-[#0F0F0F] transition-all" title="Settings">
+        <Link href="/settings" className="w-11 h-11 flex items-center justify-center rounded-2xl text-[#BBB] hover:bg-[#F5F5F3] hover:text-[#0F0F0F] transition-all" title="Settings">
           <Settings className="w-[20px] h-[20px]" strokeWidth={1.6} />
         </Link>
         <Link href={`/${handle}`} title={name}
@@ -72,7 +69,7 @@ export default function Sidebar({ profile, accountType, unreadNotifications = 0 
             name.split(' ').map(w => w[0]).join('').slice(0, 2)
           )}
         </Link>
-        <div className="text-[10px] font-bold text-[#0F0F0F]">{score}</div>
+        {accountType === 'person' && <div className="text-[10px] font-bold text-[#0F0F0F]">{score}</div>}
       </div>
     </aside>
   );

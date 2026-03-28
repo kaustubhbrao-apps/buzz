@@ -25,7 +25,7 @@ export default function NotificationItem({ notification, onClick }: { notificati
     <button
       onClick={onClick}
       className={cn(
-        'w-full flex items-start gap-3 p-4 text-left hover:bg-[#F5F5F5] transition-all duration-150 border-b border-[#F0F0F0]',
+        'w-full flex items-start gap-3 p-4 text-left hover:bg-[#FAFAF8] transition-all border-b border-[#EAEAE8]',
         !notification.read && 'bg-[#FFD60A]/[0.04]'
       )}
     >

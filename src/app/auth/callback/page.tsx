@@ -10,59 +10,62 @@ export default function AuthCallbackPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const supabase = createClient();
+    const handleCallback = async () => {
+      const supabase = createClient();
 
-    // Listen for auth state change — implicit flow triggers this automatically
-    // when tokens are in the URL hash
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          const user = session.user;
+      // Exchange code for session (email confirmation flow)
+      const { error: authError } = await supabase.auth.exchangeCodeForSession(
+        window.location.href
+      );
 
-          // Check if user row exists
-          const { data: existingUser } = await supabase
-            .from('users')
-            .select('id, account_type')
-            .eq('id', user.id)
-            .single();
-
-          if (!existingUser) {
-            router.push('/signup');
-            return;
-          }
-
-          // Check if profile exists
-          const table = existingUser.account_type === 'company'
-            ? 'company_profiles'
-            : 'person_profiles';
-          const { data: profile } = await supabase
-            .from(table)
-            .select('id')
-            .eq('user_id', user.id)
-            .single();
-
-          if (!profile) {
-            const path = existingUser.account_type === 'company'
-              ? '/onboarding/company/step1'
-              : '/onboarding/person/step1';
-            router.push(path);
-            return;
-          }
-
-          router.push('/feed');
-        } else if (event === 'INITIAL_SESSION' && !session) {
-          // No session after checking — auth failed
-          setError('Authentication failed');
-          setTimeout(() => router.push('/login?error=auth'), 2000);
-        }
+      if (authError) {
+        setError('Confirmation link expired or invalid');
+        setTimeout(() => router.push('/login?error=auth'), 2000);
+        return;
       }
-    );
 
-    return () => subscription.unsubscribe();
+      // Session is now active — check if user has completed setup
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError('Authentication failed');
+        setTimeout(() => router.push('/login?error=auth'), 2000);
+        return;
+      }
+
+      const { data: dbUser } = await supabase
+        .from('users')
+        .select('account_type')
+        .eq('id', user.id)
+        .single();
+
+      if (!dbUser) {
+        // Auth confirmed but no DB user yet — go to signup to pick type + create profile
+        router.push('/signup');
+        return;
+      }
+
+      // Check if profile exists
+      const table = dbUser.account_type === 'company' ? 'company_profiles' : 'person_profiles';
+      const { data: profile } = await supabase
+        .from(table)
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) {
+        const path = dbUser.account_type === 'company' ? '/onboarding/company/step1' : '/onboarding/person/step1';
+        router.push(path);
+        return;
+      }
+
+      router.push('/feed');
+    };
+
+    handleCallback();
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center">
+    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
       <div className="text-center">
         {error ? (
           <>
@@ -72,7 +75,7 @@ export default function AuthCallbackPage() {
         ) : (
           <>
             <Loader2 className="w-6 h-6 animate-spin text-[#0F0F0F]/30 mx-auto mb-3" />
-            <p className="text-[13px] text-[#888]">Signing you in...</p>
+            <p className="text-[13px] text-[#888]">Confirming your account...</p>
           </>
         )}
       </div>

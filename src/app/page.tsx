@@ -1,105 +1,88 @@
 import Link from 'next/link';
+import { Zap } from 'lucide-react';
 
 const PROBLEMS = [
-  { emoji: '🎭', title: 'Titles over talent', desc: 'Credentials get clicks. Actual skill gets overlooked.' },
-  { emoji: '📄', title: 'Resumes are broken', desc: 'Static documents that say nothing about what you can actually build.' },
-  { emoji: '🤖', title: 'Noise everywhere', desc: 'Generic outreach, irrelevant roles, zero personalization.' },
-  { emoji: '😶', title: 'Hidden gems stay hidden', desc: 'Talented people in every city — but no way to surface them.' },
-  { emoji: '🗣️', title: 'Talk over proof', desc: 'Engagement bait gets rewarded. Real work gets buried.' },
-  { emoji: '💸', title: 'Opaque hiring', desc: 'No salary info. No response timelines. No accountability.' },
+  { title: 'Titles over talent', desc: 'Credentials get clicks. Actual skill gets overlooked.' },
+  { title: 'Resumes are fiction', desc: 'Static documents that say nothing about what you can actually build.' },
+  { title: 'Hidden gems stay hidden', desc: 'Talented people in every city — but no way to surface them.' },
+  { title: 'Talk over proof', desc: 'Engagement bait gets rewarded. Real work gets buried.' },
+  { title: 'Opaque hiring', desc: 'No salary info. No response timelines. No accountability.' },
+  { title: 'Noise everywhere', desc: 'Generic outreach, irrelevant roles, zero personalization.' },
 ];
 
-const HOW_IT_WORKS = [
-  { emoji: '🔥', title: 'Post your work', desc: 'Ship a project, design, article — anything real. Your Work Wall is your living portfolio.', color: 'from-orange-500/20 to-red-500/20' },
-  { emoji: '⚡', title: 'Build Buzz Score', desc: 'Every reaction, save, and endorsement earns points. Rise from Seedling to Legend.', color: 'from-yellow-500/20 to-amber-500/20' },
-  { emoji: '💼', title: 'Get hired on merit', desc: 'Companies see your proof. Apply with your Work Wall — no CV, no cover letter.', color: 'from-blue-500/20 to-cyan-500/20' },
+const HOW = [
+  { step: '01', title: 'Post your work', desc: 'Ship a project, design, article — anything real. Your Work Wall is your living portfolio.' },
+  { step: '02', title: 'Build your score', desc: 'Every reaction, save, and endorsement earns points. Rise from Seedling to Legend.' },
+  { step: '03', title: 'Get hired on merit', desc: 'Companies see your proof. Apply with your Work Wall — no CV, no cover letter.' },
 ];
 
 const BANDS = [
-  { emoji: '🌱', label: 'Seedling', range: '0–199', color: 'from-gray-500/20 to-gray-600/20', glow: 'rgba(156,163,175,0.2)' },
-  { emoji: '⚡', label: 'Charged', range: '200–499', color: 'from-blue-500/20 to-blue-600/20', glow: 'rgba(59,130,246,0.2)' },
-  { emoji: '🔥', label: 'Buzzing', range: '500–799', color: 'from-orange-500/20 to-orange-600/20', glow: 'rgba(249,115,22,0.2)' },
-  { emoji: '💎', label: 'Elite', range: '800–1199', color: 'from-purple-500/20 to-purple-600/20', glow: 'rgba(139,92,246,0.2)' },
-  { emoji: '👑', label: 'Legend', range: '1200+', color: 'from-yellow-500/20 to-amber-500/20', glow: 'rgba(245,197,24,0.3)' },
+  { emoji: '🌱', label: 'Seedling', range: '0–199' },
+  { emoji: '⚡', label: 'Charged', range: '200–499' },
+  { emoji: '🔥', label: 'Buzzing', range: '500–799' },
+  { emoji: '💎', label: 'Elite', range: '800–1199' },
+  { emoji: '👑', label: 'Legend', range: '1200+' },
 ];
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white text-gray-900 overflow-hidden">
-      {/* Ambient orbs */}
-      <div className="orb w-[600px] h-[600px] bg-[#FF3366]/[0.08] top-[-200px] left-[-200px] fixed" />
-      <div className="orb w-[500px] h-[500px] bg-[#FF6B9D]/[0.06] top-[40%] right-[-150px] fixed" />
-      <div className="orb w-[400px] h-[400px] bg-green-400/[0.06] bottom-[-100px] left-[30%] fixed" />
-
+    <div className="min-h-screen bg-[#FAFAF8] text-[#0F0F0F] overflow-hidden">
       {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold glow-text">⚡ Buzz</Link>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="btn-ghost text-sm">Sign in</Link>
-            <Link href="/signup" className="btn-primary text-sm">Get started free</Link>
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#EAEAE8]">
+        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-[#FFD60A] flex items-center justify-center">
+              <Zap className="w-4 h-4 text-[#0F0F0F]" fill="#0F0F0F" />
+            </div>
+            <span className="font-bold text-[15px]">Buzz</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/login" className="text-[13px] font-medium text-[#666] hover:text-[#0F0F0F] px-3 py-2 transition-colors">Sign in</Link>
+            <Link href="/signup" className="btn-primary text-[13px] px-5 py-2">Get started</Link>
           </div>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="relative max-w-6xl mx-auto px-6 pt-24 pb-20 text-center bg-grid">
-        <div className="animate-fade-up">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-sm text-gray-500 mb-8">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            India&apos;s proof-of-work professional network
+      <section className="max-w-5xl mx-auto px-6 pt-20 sm:pt-32 pb-20">
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFD60A]/10 text-[13px] text-[#0F0F0F]/70 font-medium mb-6 animate-fade-up">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
+            India&apos;s proof-of-work network
           </div>
-        </div>
 
-        <h1 className="text-6xl md:text-8xl font-bold mb-6 animate-fade-up stagger-1">
-          <span className="glow-text">Work loud.</span>
-        </h1>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.1] tracking-tight mb-5 animate-fade-up stagger-1">
+            Get hired for what<br />you <span className="text-[#FFD60A]">actually build</span>.
+          </h1>
 
-        <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 animate-fade-up stagger-2">
-          Post your real work. Build your Buzz Score. Get discovered and hired on
-          merit — through real, verifiable work.
-        </p>
+          <p className="text-base sm:text-lg text-[#666] max-w-lg mb-8 leading-relaxed animate-fade-up stagger-2">
+            Post your real work. Build your Buzz Score. Get discovered by companies
+            that hire on proof, not resumes.
+          </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-up stagger-3">
-          <Link href="/signup" className="btn-primary text-base px-10 py-3.5">
-            Get started free
-          </Link>
-          <Link href="/feed" className="btn-secondary text-base px-8 py-3.5">
-            Explore feed →
-          </Link>
-        </div>
-        <p className="text-gray-400 text-sm mt-4 animate-fade-up stagger-4">Free forever. No credit card.</p>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto mt-16 animate-fade-up stagger-4">
-          {[
-            { value: '10K+', label: 'Creators' },
-            { value: '50K+', label: 'Work posts' },
-            { value: '2K+', label: 'Hires made' },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <p className="text-2xl font-bold glow-text">{stat.value}</p>
-              <p className="text-xs text-gray-500 mt-1">{stat.label}</p>
-            </div>
-          ))}
+          <div className="flex flex-wrap items-center gap-3 animate-fade-up stagger-3">
+            <Link href="/signup" className="btn-primary text-[14px] px-8 py-3">
+              Start building your wall
+            </Link>
+            <Link href="/feed" className="btn-secondary text-[14px] px-6 py-3">
+              See the feed
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Problem */}
-      <section className="relative py-24 border-t border-gray-100">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-4">
-            Hiring is broken.
+      <section className="border-t border-[#EAEAE8]">
+        <div className="max-w-5xl mx-auto px-6 py-20 sm:py-24">
+          <p className="text-[12px] font-semibold text-[#FFD60A] uppercase tracking-widest mb-3">The problem</p>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-12 max-w-md">
+            Hiring is broken. Everyone knows it.
           </h2>
-          <p className="text-gray-500 text-center mb-16 max-w-xl mx-auto">
-            The way professionals get discovered and hired needs a rethink.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {PROBLEMS.map((p, i) => (
-              <div key={p.title} className="card-static p-6 group animate-fade-up" style={{ animationDelay: `${i * 0.1}s`, opacity: 0 }}>
-                <span className="text-3xl group-hover:scale-110 transition-transform inline-block">{p.emoji}</span>
-                <h3 className="font-semibold mt-3 mb-1 text-gray-800">{p.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{p.desc}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-[#EAEAE8] rounded-2xl overflow-hidden border border-[#EAEAE8]">
+            {PROBLEMS.map((p) => (
+              <div key={p.title} className="bg-white p-6">
+                <h3 className="font-semibold text-[14px] text-[#0F0F0F] mb-1.5">{p.title}</h3>
+                <p className="text-[13px] text-[#888] leading-relaxed">{p.desc}</p>
               </div>
             ))}
           </div>
@@ -107,72 +90,74 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section className="py-24 border-t border-gray-100 bg-grid">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-16">
-            Three steps to <span className="glow-text">get noticed</span>
+      <section className="border-t border-[#EAEAE8] bg-white">
+        <div className="max-w-5xl mx-auto px-6 py-20 sm:py-24">
+          <p className="text-[12px] font-semibold text-[#FFD60A] uppercase tracking-widest mb-3">How it works</p>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-12 max-w-md">
+            Three steps. No fluff.
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {HOW_IT_WORKS.map((item, i) => (
-              <div key={i} className={`card-static p-8 text-center bg-gradient-to-br ${item.color}`}>
-                <span className="text-5xl animate-float inline-block" style={{ animationDelay: `${i * 0.5}s` }}>
-                  {item.emoji}
-                </span>
-                <h3 className="text-lg font-semibold mt-6 mb-3 text-gray-900">{item.title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {HOW.map((item) => (
+              <div key={item.step}>
+                <span className="text-[11px] font-mono font-bold text-[#FFD60A]">{item.step}</span>
+                <h3 className="text-[16px] font-semibold mt-2 mb-2 text-[#0F0F0F]">{item.title}</h3>
+                <p className="text-[13px] text-[#888] leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Buzz Score Bands */}
-      <section className="py-24 border-t border-gray-100">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-4">
-            Your <span className="glow-text">Buzz Score</span>
-          </h2>
-          <p className="text-gray-500 text-center mb-16 max-w-xl mx-auto">
-            Every piece of real work earns points. Rise through the ranks.
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {BANDS.map((b) => (
-              <div
-                key={b.label}
-                className={`card-static p-5 text-center bg-gradient-to-br ${b.color} hover:shadow-[0_0_30px_${b.glow}] transition-all duration-500`}
-              >
-                <span className="text-4xl">{b.emoji}</span>
-                <h3 className="font-bold mt-2 text-gray-900">{b.label}</h3>
-                <p className="text-gray-500 text-xs mt-1 font-mono">{b.range}</p>
-              </div>
-            ))}
+      {/* Buzz Score */}
+      <section className="border-t border-[#EAEAE8]">
+        <div className="max-w-5xl mx-auto px-6 py-20 sm:py-24">
+          <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
+            <div className="lg:max-w-sm flex-shrink-0">
+              <p className="text-[12px] font-semibold text-[#FFD60A] uppercase tracking-widest mb-3">Buzz Score</p>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+                Your work has a number.
+              </h2>
+              <p className="text-[14px] text-[#888] leading-relaxed">
+                Every piece of real work you post earns points. Reactions, endorsements, and saves push your score higher. Companies filter by score — the better your work, the more visible you become.
+              </p>
+            </div>
+            <div className="flex-1 w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              {BANDS.map((b) => (
+                <div key={b.label} className="card-static p-4 text-center">
+                  <span className="text-2xl">{b.emoji}</span>
+                  <h3 className="font-bold text-[13px] mt-2 text-[#0F0F0F]">{b.label}</h3>
+                  <p className="text-[#BBB] text-[11px] mt-0.5 font-mono">{b.range}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Account types */}
-      <section className="py-24 border-t border-gray-100 bg-grid">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-bold text-center mb-16">Two ways to Buzz</h2>
+      <section className="border-t border-[#EAEAE8] bg-white">
+        <div className="max-w-5xl mx-auto px-6 py-20 sm:py-24">
+          <p className="text-[12px] font-semibold text-[#FFD60A] uppercase tracking-widest mb-3">For everyone</p>
+          <h2 className="text-2xl sm:text-3xl font-bold mb-12">Two ways to use Buzz</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="card-static p-8 bg-gradient-to-br from-blue-500/10 to-cyan-500/10">
-              <span className="text-4xl">👤</span>
-              <h3 className="text-xl font-bold mt-4 mb-3 text-gray-900">Person Account</h3>
-              <ul className="text-gray-400 text-sm space-y-2.5">
-                <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Build your Work Wall — a living portfolio</li>
-                <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Earn your Buzz Score through real proof</li>
-                <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Get discovered by companies that care about work</li>
-                <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Apply to jobs with your Wall — no CV needed</li>
+            <div className="rounded-2xl border border-[#EAEAE8] p-8">
+              <span className="text-2xl">👤</span>
+              <h3 className="text-lg font-bold mt-3 mb-3 text-[#0F0F0F]">Person</h3>
+              <ul className="text-[#777] text-[13px] space-y-2">
+                <li>Build your Work Wall — a living portfolio</li>
+                <li>Earn your Buzz Score through proof</li>
+                <li>Get discovered by companies</li>
+                <li>Apply to jobs with your Wall, not a CV</li>
               </ul>
             </div>
-            <div className="card-static p-8 bg-gradient-to-br from-purple-500/10 to-pink-500/10">
-              <span className="text-4xl">🏢</span>
-              <h3 className="text-xl font-bold mt-4 mb-3 text-gray-900">Company Page</h3>
-              <ul className="text-gray-400 text-sm space-y-2.5">
-                <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Post jobs with proof requirements — attract real talent</li>
-                <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Review Work Walls instead of CVs</li>
-                <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Build your Credibility Rating</li>
-                <li className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span> Free to post — no recruiter fees</li>
+            <div className="rounded-2xl border border-[#EAEAE8] p-8">
+              <span className="text-2xl">🏢</span>
+              <h3 className="text-lg font-bold mt-3 mb-3 text-[#0F0F0F]">Company</h3>
+              <ul className="text-[#777] text-[13px] space-y-2">
+                <li>Post jobs with proof requirements</li>
+                <li>Review Work Walls instead of CVs</li>
+                <li>Build your Credibility Rating</li>
+                <li>Free to post — no recruiter fees</li>
               </ul>
             </div>
           </div>
@@ -180,25 +165,25 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 border-t border-gray-100 relative">
-        <div className="orb w-[500px] h-[500px] bg-[#FF3366]/[0.06] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 absolute" />
-        <div className="max-w-6xl mx-auto px-6 text-center relative z-10">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6">
-            Ready to <span className="glow-text">work loud</span>?
+      <section className="border-t border-[#EAEAE8]">
+        <div className="max-w-5xl mx-auto px-6 py-20 sm:py-28 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+            Stop talking. Start proving.
           </h2>
-          <p className="text-gray-500 mb-8 max-w-md mx-auto">
-            Join thousands of creators, developers, and designers proving their worth through real work.
+          <p className="text-[#888] mb-8 max-w-sm mx-auto text-[14px]">
+            Free forever. No credit card. Just your work.
           </p>
-          <Link href="/signup" className="btn-primary text-lg px-12 py-4 animate-pulse-glow">
+          <Link href="/signup" className="btn-primary text-[15px] px-10 py-3.5">
             Get started free
           </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 py-8">
-        <div className="max-w-6xl mx-auto px-6 text-center text-sm text-gray-400">
-          ⚡ Buzz — Work Loud. Made in India 🇮🇳
+      <footer className="border-t border-[#EAEAE8] py-6">
+        <div className="max-w-5xl mx-auto px-6 flex items-center justify-between text-[12px] text-[#BBB]">
+          <span>Buzz</span>
+          <span>Made in India</span>
         </div>
       </footer>
     </div>

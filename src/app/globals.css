@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 @layer base {
-  * { @apply border-[#F0F0F0]; }
+  * { @apply border-[#EAEAE8]; }
 
   body {
-    background: #FAFAFA;
+    background: #FAFAF8;
     color: #0F0F0F;
     -webkit-font-smoothing: antialiased;
   }
@@ -14,63 +14,68 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center font-semibold rounded-full px-6 py-2.5 text-sm text-[#0F0F0F] active:scale-95 transition-all duration-150 disabled:opacity-40;
+    @apply inline-flex items-center justify-center font-semibold rounded-full px-6 py-2.5 text-sm text-[#0F0F0F]
+    transition-all duration-150 disabled:opacity-40;
     background: #FFD60A;
   }
-  .btn-primary:hover { background: #FFC800; }
+  .btn-primary:hover { background: #FFC800; box-shadow: 0 2px 12px rgba(255,214,10,0.3); }
+  .btn-primary:active { transform: scale(0.97); }
 
   .btn-secondary {
     @apply inline-flex items-center justify-center font-medium rounded-full px-5 py-2 text-sm
-    bg-[#F5F5F5] text-[#0F0F0F] hover:bg-[#EBEBEB] active:scale-95 transition-all duration-150 disabled:opacity-40;
+    bg-white text-[#0F0F0F] border border-[#EAEAE8] hover:border-[#DDD] hover:bg-[#F5F5F3]
+    active:scale-[0.97] transition-all duration-150 disabled:opacity-40;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-full px-4 py-2 text-sm text-[#999]
-    hover:text-[#0F0F0F] hover:bg-[#F5F5F5] transition-all duration-150;
+    @apply inline-flex items-center justify-center rounded-full px-4 py-2 text-sm text-[#888]
+    hover:text-[#0F0F0F] hover:bg-[#F0F0EE] active:scale-[0.97] transition-all duration-150;
   }
 
   .card {
-    @apply bg-white rounded-2xl;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04);
+    @apply bg-white rounded-2xl border border-[#EAEAE8] transition-shadow duration-200;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
-  .card:hover {
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.06);
-  }
+  .card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
 
   .card-static {
-    @apply bg-white rounded-2xl;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04);
+    @apply bg-white rounded-2xl border border-[#EAEAE8];
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
 
   .input {
-    @apply w-full bg-[#F5F5F5] border-0 rounded-xl px-4 py-3 text-sm text-[#0F0F0F]
-    placeholder:text-[#BBB] focus:outline-none focus:ring-2 focus:ring-[#FFD60A] transition-all duration-150;
+    @apply w-full bg-white border border-[#EAEAE8] rounded-xl px-4 py-3 text-sm text-[#0F0F0F]
+    placeholder:text-[#BBB] focus:outline-none focus:border-[#FFD60A] focus:ring-2 focus:ring-[#FFD60A]/20
+    transition-all duration-150;
   }
 
   .label { @apply text-sm font-medium text-[#555]; }
 
   .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide uppercase;
+    @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide uppercase
+    bg-[#F5F5F3] text-[#666] border border-[#EAEAE8];
   }
 
-  .score-bar { @apply h-1 rounded-full bg-[#F0F0F0]; }
+  .score-bar {
+    @apply h-1 rounded-full bg-[#F0F0EE];
+  }
   .score-fill { @apply h-full rounded-full transition-all duration-700 ease-out; }
 }
 
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-up { animation: fade-up 0.4s ease-out forwards; }
+/* Stagger fade-up */
 .stagger-1 { animation-delay: 0.05s; opacity: 0; }
-.stagger-2 { animation-delay: 0.1s; opacity: 0; }
+.stagger-2 { animation-delay: 0.10s; opacity: 0; }
 .stagger-3 { animation-delay: 0.15s; opacity: 0; }
-.stagger-4 { animation-delay: 0.2s; opacity: 0; }
+.stagger-4 { animation-delay: 0.20s; opacity: 0; }
 
 .orb { @apply absolute rounded-full blur-3xl pointer-events-none; }
-.bg-grid {
-  background-image: radial-gradient(circle, #E5E5E5 1px, transparent 1px);
-  background-size: 24px 24px;
+
+.glow-text {
+  background: linear-gradient(135deg, #FFD60A 0%, #FF8C00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 ::-webkit-scrollbar { width: 0; }
+::selection { background: rgba(255, 214, 10, 0.25); }

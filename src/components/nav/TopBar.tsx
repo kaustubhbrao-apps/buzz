@@ -13,7 +13,7 @@ export default function TopBar({ profile, handle, unreadNotifications = 0 }: {
     : null;
 
   return (
-    <header className="md:hidden sticky top-0 z-40 bg-white border-b border-[#F0F0F0]">
+    <header className="md:hidden sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-[#EAEAE8]">
       <div className="flex items-center justify-between h-14 px-4">
         <Link href={handle ? `/${handle}` : '/feed'}
           className="w-8 h-8 rounded-xl bg-[#0F0F0F] text-white flex items-center justify-center text-[10px] font-bold overflow-hidden">

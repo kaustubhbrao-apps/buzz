@@ -44,10 +44,10 @@ export default function MessagesPage() {
     <div className="max-w-2xl">
       <h1 className="text-xl font-bold text-[#0F0F0F] mb-5">Messages</h1>
 
-      <div className="flex gap-1 p-1 bg-[#F0F0F0] rounded-2xl mb-4">
+      <div className="flex gap-1 p-1 bg-[#F0F0EE] rounded-2xl mb-4">
         {TABS.map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 py-2 text-[12px] font-semibold rounded-xl transition-all ${tab === t ? 'bg-white text-[#0F0F0F] shadow-sm' : 'text-[#0F0F0F]/40'}`}>
+            className={`flex-1 py-2 text-[12px] font-semibold rounded-xl transition-all duration-150 ${tab === t ? 'bg-white text-[#0F0F0F] shadow-xs' : 'text-[#0F0F0F]/40'}`}>
             {t}
           </button>
         ))}
@@ -63,7 +63,7 @@ export default function MessagesPage() {
             <p className="text-[13px] text-[#0F0F0F]/40 text-center py-12">No messages yet.</p>
           ) : filtered.map(t => (
             <Link key={t.id} href={`/messages/${t.id}`}
-              className="flex items-center gap-3 p-4 hover:bg-[#FAFAFA] transition-all border-b border-[#F5F5F5] last:border-0">
+              className="flex items-center gap-3 p-4 hover:bg-[#FAFAF8] transition-all border-b border-[#EAEAE8] last:border-0">
               <Avatar src={getAvatar(t)} name={getName(t)} size="md" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">

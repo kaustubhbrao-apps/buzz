@@ -36,17 +36,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       .single();
     profile = data;
 
-    // Backfill avatar from Google if missing
-    if (profile && !profile.avatar_url) {
-      const googleAvatar = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture;
-      if (googleAvatar) {
-        await supabase
-          .from('person_profiles')
-          .update({ avatar_url: googleAvatar })
-          .eq('id', profile.id);
-        profile.avatar_url = googleAvatar;
-      }
-    }
   }
 
   if (!profile) redirect('/login');

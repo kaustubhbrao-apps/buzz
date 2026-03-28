@@ -16,13 +16,13 @@ const ITEMS = [
 export default function BottomNav({ unreadNotifications = 0 }: { unreadNotifications?: number }) {
   const pathname = usePathname();
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-[#F0F0F0] z-40">
-      <div className="flex items-center justify-around h-14">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/80 backdrop-blur-xl border-t border-[#EAEAE8] z-40">
+      <div className="flex items-center justify-around h-14 px-2">
         {ITEMS.map((item) => {
           const isActive = pathname.startsWith(item.href);
           return (
             <Link key={item.href} href={item.href}
-              className={cn('relative w-11 h-11 flex items-center justify-center rounded-2xl transition-all',
+              className={cn('relative w-11 h-11 flex items-center justify-center rounded-2xl transition-all duration-150 active:scale-90',
                 isActive ? 'bg-[#0F0F0F] text-white' : 'text-[#CCC]')}>
               <item.icon className="w-5 h-5" strokeWidth={isActive ? 2.2 : 1.6} />
               {item.icon === Bell && unreadNotifications > 0 && (

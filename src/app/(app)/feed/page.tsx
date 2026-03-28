@@ -163,7 +163,7 @@ export default function FeedPage() {
                 </div>
               )}
               {attachmentType === 'video' && attachmentFile && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-[#F5F5F5] rounded-xl text-[12px] text-[#0F0F0F]/70">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#F5F5F3] text-[12px] text-[#0F0F0F]/70">
                   <Video className="w-4 h-4 text-[#888]" />
                   <span className="truncate flex-1">{attachmentFile.name}</span>
                   <button onClick={clearAttachment} className="p-0.5 hover:bg-[#E0E0E0] rounded-full transition-colors">
@@ -212,7 +212,7 @@ export default function FeedPage() {
           ) : (
             <div className="flex items-center gap-3">
               <Avatar src={profile?.avatar_url ?? null} name={profile?.full_name ?? 'You'} size="md" />
-              <button onClick={() => setComposing(true)} className="flex-1 text-left px-4 py-2.5 rounded-full bg-[#F5F5F5] text-sm text-[#0F0F0F]/40 hover:bg-[#EBEBEB] transition-all">
+              <button onClick={() => setComposing(true)} className="flex-1 text-left px-4 py-2.5 rounded-full bg-[#F5F5F3] text-sm text-[#0F0F0F]/40 hover:bg-[#EEEEEC] transition-all">
                 Share your work...
               </button>
               <button onClick={() => setComposing(true)} className="btn-primary py-2 px-4 text-[12px]">Post</button>
@@ -221,11 +221,11 @@ export default function FeedPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-[#F0F0F0] rounded-2xl">
+        <div className="flex gap-1 p-1 bg-[#F0F0EE] rounded-2xl">
           {(['buzz', 'latest'] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`flex-1 py-2.5 text-[12px] font-semibold rounded-xl transition-all duration-150 ${
-                tab === t ? 'bg-white text-[#0F0F0F] shadow-sm' : 'text-[#0F0F0F]/40 hover:text-[#0F0F0F]/60'
+                tab === t ? 'bg-white text-[#0F0F0F] shadow-xs' : 'text-[#0F0F0F]/40 hover:text-[#0F0F0F]/60'
               }`}>
               {t === 'buzz' ? '⚡ Buzz Feed' : '📅 Latest'}
             </button>

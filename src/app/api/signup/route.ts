@@ -61,7 +61,6 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         handle,
         full_name: user.user_metadata?.full_name || user.email!.split('@')[0],
-        avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
       });
 
     if (profileError) {
