@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Zap, User, Building2, Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
@@ -19,11 +19,53 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [confirmEmail, setConfirmEmail] = useState(false);
+  const [existingSession, setExistingSession] = useState<string | null>(null);
 
-  const handlePickType = (type: 'person' | 'company') => {
+  // Check if user already has a session (e.g. redirected from login with no DB user)
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        setExistingSession(data.session.access_token);
+      }
+    });
+  }, []);
+
+  const createDbUser = async (type: 'person' | 'company', token: string) => {
+    const res = await fetch('/api/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ account_type: type }),
+    });
+
+    if (!res.ok && res.status !== 409) {
+      const data = await res.json();
+      throw new Error(data.error || 'Failed to create account');
+    }
+
+    router.push(type === 'company' ? '/onboarding/company/step1' : '/onboarding/person/step1');
+  };
+
+  const handlePickType = async (type: 'person' | 'company') => {
     setAccountType(type);
-    setStep('details');
     setError('');
+
+    // If already signed in, skip the form — just create DB user
+    if (existingSession) {
+      setLoading(true);
+      try {
+        await createDbUser(type, existingSession);
+      } catch (err: any) {
+        setError(err.message || 'Something went wrong');
+        setLoading(false);
+      }
+      return;
+    }
+
+    setStep('details');
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -41,7 +83,6 @@ export default function SignupPage() {
     try {
       const supabase = createClient();
 
-      // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -59,22 +100,7 @@ export default function SignupPage() {
         return;
       }
 
-      // Create user + profile in DB
-      const res = await fetch('/api/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authData.session.access_token}`,
-        },
-        body: JSON.stringify({ account_type: accountType }),
-      });
-
-      if (!res.ok && res.status !== 409) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to create account');
-      }
-
-      router.push(accountType === 'company' ? '/onboarding/company/step1' : '/onboarding/person/step1');
+      await createDbUser(accountType, authData.session.access_token);
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
       setLoading(false);
@@ -111,21 +137,29 @@ export default function SignupPage() {
 
         {step === 'pick-type' && (
           <>
-            <h1 className="text-2xl font-bold text-[#0F0F0F] text-center mb-1">Join Buzz</h1>
+            <h1 className="text-2xl font-bold text-[#0F0F0F] text-center mb-1">
+              {existingSession ? 'Almost there' : 'Join Buzz'}
+            </h1>
             <p className="text-[13px] text-[#0F0F0F]/50 text-center mb-8">What are you here for?</p>
 
+            {error && (
+              <div className="mb-4 px-4 py-2.5 rounded-2xl bg-red-50 text-red-600 text-[12px] font-semibold text-center">
+                {error}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              <button onClick={() => handlePickType('person')} className="card-static p-6 text-center hover:shadow-md transition-all group">
+              <button onClick={() => handlePickType('person')} disabled={loading} className="card-static p-6 text-center hover:shadow-md transition-all group disabled:opacity-50">
                 <div className="w-12 h-12 rounded-2xl bg-[#0F0F0F] text-white flex items-center justify-center mx-auto mb-4 group-hover:bg-[#FFD60A] group-hover:text-[#0F0F0F] transition-all">
-                  <User className="w-5 h-5" />
+                  {loading && accountType === 'person' ? <Loader2 className="w-5 h-5 animate-spin" /> : <User className="w-5 h-5" />}
                 </div>
                 <h2 className="font-bold text-[15px] text-[#0F0F0F] mb-1">I&apos;m a professional</h2>
                 <p className="text-[12px] text-[#0F0F0F]/50">Build your Work Wall, earn your Buzz Score, get hired on merit.</p>
               </button>
 
-              <button onClick={() => handlePickType('company')} className="card-static p-6 text-center hover:shadow-md transition-all group">
+              <button onClick={() => handlePickType('company')} disabled={loading} className="card-static p-6 text-center hover:shadow-md transition-all group disabled:opacity-50">
                 <div className="w-12 h-12 rounded-2xl bg-[#0F0F0F] text-white flex items-center justify-center mx-auto mb-4 group-hover:bg-[#FFD60A] group-hover:text-[#0F0F0F] transition-all">
-                  <Building2 className="w-5 h-5" />
+                  {loading && accountType === 'company' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Building2 className="w-5 h-5" />}
                 </div>
                 <h2 className="font-bold text-[15px] text-[#0F0F0F] mb-1">I&apos;m hiring</h2>
                 <p className="text-[12px] text-[#0F0F0F]/50">Post jobs free, find talent through real work, not resumes.</p>
